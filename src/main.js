@@ -173,10 +173,15 @@ function animate() {
   camera.position.lerp(_pos, 0.15);
   camera.lookAt(_look);
 
-  // Per-chapter animations (only near the camera, for perf)
-  groups.forEach((g) => {
+  // Per-chapter animations (only near the camera, for perf).
+  // `local` is 0→1 scroll progress *within* this chapter's visible window,
+  // so scenes can react to scrolling, not just elapsed time.
+  groups.forEach((g, i) => {
     if (g.userData.update && Math.abs(g.position.z - camera.position.z) < 140) {
-      g.userData.update(dt, t);
+      const r = chapters[i]?.range;
+      let local = 0;
+      if (r) local = Math.min(1, Math.max(0, (currentP - r[0]) / (r[1] - r[0] || 1)));
+      g.userData.update(dt, t, local);
     }
   });
 

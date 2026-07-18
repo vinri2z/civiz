@@ -62,20 +62,20 @@ export const chapters = [
     year: "2020 – 2022",
     body:
       "2020: joining Datamaran. Backend engineering in Python (FastAPI), serverless ML " +
-      "inference on AWS, evaluation datasets, and human-in-the-loop MLOps with Argilla. " +
-      "Then the world shut down.",
+      "inference on AWS, evaluation datasets, and human-in-the-loop MLOps with Argilla.",
     tags: ["FastAPI", "AWS serverless", "Argilla", "MLOps"],
     range: [0.64, 0.77],
   },
   {
     id: "mexico",
-    kicker: "The pandemic detour",
+    kicker: "A new hemisphere",
     title: "Data Scientist — remotely, from Mexico",
-    where: "Mexico",
+    where: "Querétaro, Mexico",
     year: "2020 – 2022",
     body:
-      "The pandemic redraws the map. Same mission at Datamaran, a new hemisphere: building " +
-      "evaluation datasets and NLP models over corporate disclosures and legal text.",
+      "Across the Atlantic to Querétaro — colonial streets, warm stone, and remote work. " +
+      "Same mission at Datamaran: building evaluation datasets and NLP models over " +
+      "corporate disclosures and legal text.",
     tags: ["Remote", "NLP", "Information extraction"],
     range: [0.78, 0.88],
   },
