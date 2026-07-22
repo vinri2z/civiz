@@ -23,7 +23,7 @@ function jitterVertices(geo, amount) {
 }
 
 // ---------------------------------------------------------------------------
-// 1. EARTH — a stylized low-poly planet with continents and clouds
+// 1. EARTH - a stylized low-poly planet with continents and clouds
 // ---------------------------------------------------------------------------
 function buildEarth() {
   const g = new THREE.Group();
@@ -127,7 +127,7 @@ function buildEarth() {
 }
 
 // ---------------------------------------------------------------------------
-// 2. GAULOIS VILLAGE — Asterix-style thatched huts + palisade + menhir
+// 2. GAULOIS VILLAGE - Asterix-style thatched huts + palisade + menhir
 // ---------------------------------------------------------------------------
 function buildVillage() {
   const g = new THREE.Group();
@@ -340,7 +340,7 @@ function buildVillage() {
 }
 
 // ---------------------------------------------------------------------------
-// 3. PARIS RENAISSANCE — sandstone palace, mansard roofs, obelisk
+// 3. PARIS RENAISSANCE - sandstone palace, mansard roofs, obelisk
 // ---------------------------------------------------------------------------
 function buildParis() {
   const g = new THREE.Group();
@@ -464,7 +464,7 @@ function buildParis() {
 }
 
 // ---------------------------------------------------------------------------
-// 4. VALENCIA — Ciutat de les Arts white arches over a reflecting pool
+// 4. VALENCIA - Ciutat de les Arts white arches over a reflecting pool
 // ---------------------------------------------------------------------------
 function buildValenciaUni() {
   const g = new THREE.Group();
@@ -479,7 +479,7 @@ function buildValenciaUni() {
   const white = mat(0xf3f4f2, { roughness: 0.4, metalness: 0.05, flatShading: true });
 
   // Calatrava-style ribbed arches (half torus). At night the Ciutat de les
-  // Arts glows blue — each arch has its own emissive material so we can light
+  // Arts glows blue - each arch has its own emissive material so we can light
   // them up one by one as the visitor scrolls through.
   const arches = [];
   for (let i = 0; i < 5; i++) {
@@ -520,7 +520,7 @@ function buildValenciaUni() {
   seal.position.set(0, 0.05, 14);
   g.add(seal);
 
-  // The "eye" — a big shell (half ellipsoid) like the Hemisfèric
+  // The "eye" - a big shell (half ellipsoid) like the Hemisfèric
   const shell = new THREE.Mesh(new THREE.SphereGeometry(7, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), white);
   shell.scale.set(1.6, 1, 1);
   shell.position.set(-16, 0.2, 4);
@@ -554,7 +554,7 @@ function buildValenciaUni() {
   sun.position.set(10, 30, 20);
   g.add(sun);
 
-  // L'Assut de l'Or — a leaning white pylon with harp cables
+  // L'Assut de l'Or - a leaning white pylon with harp cables
   const bridge = new THREE.Group();
   const lean = 0.32;
   const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 20, 12), white);
@@ -630,7 +630,7 @@ function buildGear(color) {
 }
 
 // ---------------------------------------------------------------------------
-// 5. DATAMARAN 2020 — glass office tower, floating data, pandemic virus
+// 5. DATAMARAN 2020 - glass office tower, floating data, pandemic virus
 // ---------------------------------------------------------------------------
 function buildDatamaran2020() {
   const g = new THREE.Group();
@@ -664,7 +664,7 @@ function buildDatamaran2020() {
   }
   g.add(cubes);
 
-  // A slowly rotating wireframe globe overhead — data drawn from everywhere
+  // A slowly rotating wireframe globe overhead - data drawn from everywhere
   const globe = new THREE.Group();
   const globeWire = new THREE.Mesh(
     new THREE.IcosahedronGeometry(3, 2),
@@ -694,7 +694,7 @@ function buildDatamaran2020() {
     g.add(t);
   });
 
-  // A lit workstation at the base — the human in the loop
+  // A lit workstation at the base - the human in the loop
   const desk = new THREE.Group();
   const dtop = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, 2.4), mat(0x1a1d22, { metalness: 0.4 }));
   dtop.position.y = 1.4;
@@ -725,7 +725,7 @@ function buildDatamaran2020() {
       c.rotation.x += dt * c.userData.spin;
       c.rotation.y += dt * c.userData.spin * 0.7;
       c.position.y += Math.sin(t + i) * dt * 0.4;
-      // As you scroll in, scattered cubes converge toward the tower — data
+      // As you scroll in, scattered cubes converge toward the tower - data
       // becoming structured intelligence.
       c.scale.setScalar(0.6 + local * 0.7);
     });
@@ -738,7 +738,7 @@ function buildDatamaran2020() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. MEXICO — step pyramid, cactus, hot sun
+// 6. MEXICO - step pyramid, cactus, hot sun
 // ---------------------------------------------------------------------------
 function buildMexico() {
   const g = new THREE.Group();
@@ -941,7 +941,7 @@ function buildMexico() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. VALENCIA SENIOR — podium, badge, confetti burst
+// 7. VALENCIA SENIOR - podium, badge, confetti burst
 // ---------------------------------------------------------------------------
 function buildValenciaSenior() {
   const g = new THREE.Group();
@@ -961,7 +961,7 @@ function buildValenciaSenior() {
   podium.position.set(0, 2, 0);
   g.add(podium);
 
-  // "Senior" badge — a gold star medallion floating above
+  // "Senior" badge - a gold star medallion floating above
   const medal = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 0.4, 32), mat(0xf1c40f, { metalness: 0.8, roughness: 0.2, emissive: 0x5a4600, emissiveIntensity: 0.4 }));
   medal.rotation.x = Math.PI / 2;
   medal.position.set(0, 8, 0);

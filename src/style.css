@@ -150,15 +150,24 @@ body {
 .card .links {
   margin-top: 18px;
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 14px;
   font-size: 0.82rem;
 }
 .card .links a {
   color: var(--ink);
   text-decoration: none;
   border-bottom: 1px solid var(--card-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .card .links a:hover { color: var(--accent); border-color: var(--accent); }
+.card .links .ico {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
 
 /* Timeline dots */
 .timeline {

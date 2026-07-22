@@ -1,4 +1,4 @@
-// Chapter content — pulled from Vincent's CV, mapped to the 3D journey.
+// Chapter content - pulled from Vincent's CV, mapped to the 3D journey.
 // `range` is the scroll-progress window [start, end] where each card is visible.
 // `anchor` is the world Z where the chapter's 3D set lives (see world.js).
 
@@ -10,8 +10,8 @@ export const chapters = [
     where: "Earth → France",
     year: "",
     body:
-      "Machine Learning &amp; software engineer with 5+ years turning large, messy text " +
-      "corpora — regulations, corporate disclosures — into reliable, structured intelligence. " +
+      "Machine Learning &amp; software engineer with 5+ years turning large text corpora, " +
+      "from regulations to corporate disclosures, into structured data. " +
       "Scroll down to travel through it.",
     tags: ["GenAI", "NLP", "MLOps", "Python"],
     range: [0.03, 0.13],
@@ -24,8 +24,8 @@ export const chapters = [
     year: "…before Paris",
     body:
       "Somewhere near Marseille, in a village that never quite surrendered. Prep for the " +
-      "grandes écoles begins here — the stubborn habit of solving hard problems with whatever " +
-      "is at hand.",
+      "grandes écoles begins here, along with the stubborn habit of solving hard problems " +
+      "with whatever is at hand.",
     tags: ["CPGE preparatory classes", "Foundations", "Provence"],
     range: [0.14, 0.29],
   },
@@ -33,12 +33,12 @@ export const chapters = [
     id: "paris",
     kicker: "Education",
     title: "MSc, Industrial Engineering",
-    where: "CentraleSupélec — Paris-Saclay",
+    where: "CentraleSupélec - Paris-Saclay",
     year: "2015 – 2020",
     body:
-      "The Renaissance of the mind: engineering, systems thinking, and the tools to model " +
-      "the world. Master's thesis on detecting trends in non-financial (ESG) risk factors — " +
-      "awarded the Torrecid Foundation prize.",
+      "Engineering, systems thinking, and the tools to model the world. Master's thesis on " +
+      "detecting trends in non-financial (ESG) risk factors, awarded the Torrecid " +
+      "Foundation prize.",
     tags: ["CentraleSupélec", "Systems", "Torrecid prize"],
     range: [0.30, 0.46],
   },
@@ -49,7 +49,7 @@ export const chapters = [
     where: "Universitat Politècnica de València",
     year: "2018 – 2020",
     body:
-      "South to Valencia and the Ciutat de les Arts i les Ciències — white arches, water, " +
+      "South to Valencia and the Ciutat de les Arts i les Ciències: white arches, water, " +
       "and industry. A double degree bridging French and Spanish engineering.",
     tags: ["UPV", "Ciutat de les Arts", "Industrial"],
     range: [0.47, 0.63],
@@ -57,7 +57,7 @@ export const chapters = [
   {
     id: "datamaran-2020",
     kicker: "First role",
-    title: "Product Data Scientist — Datamaran",
+    title: "Product Data Scientist - Datamaran",
     where: "Valencia, Spain",
     year: "2020 – 2022",
     body:
@@ -69,12 +69,12 @@ export const chapters = [
   {
     id: "mexico",
     kicker: "A new hemisphere",
-    title: "Data Scientist — remotely, from Mexico",
+    title: "Data Scientist - remotely, from Mexico",
     where: "Querétaro, Mexico",
     year: "2020 – 2022",
     body:
-      "Across the Atlantic to Querétaro — colonial streets, warm stone, and remote work. " +
-      "Same mission at Datamaran: building evaluation datasets and NLP models over " +
+      "Across the Atlantic to Querétaro: colonial streets, warm stone, and remote work. " +
+      "Same work at Datamaran, building evaluation datasets and NLP models over " +
       "corporate disclosures and legal text.",
     tags: ["Remote", "NLP", "Information extraction"],
     range: [0.78, 0.88],
@@ -82,12 +82,12 @@ export const chapters = [
   {
     id: "valencia-senior",
     kicker: "Today",
-    title: "Senior Data Scientist II — Datamaran",
+    title: "Senior Data Scientist II - Datamaran",
     where: "Back in Valencia",
     year: "2022 – Present",
     body:
       "2022: back to Valencia, promoted to Senior. Championing LLM-assisted workflows " +
-      "company-wide — designing, evaluating, and shipping generative-AI features with " +
+      "company-wide: designing, evaluating, and shipping generative-AI features with " +
       "guardrails, over nearly 20,000 regulations across 190+ countries.",
     tags: ["LLMs", "RAG", "Evaluation", "190+ countries"],
     range: [0.89, 1.0],

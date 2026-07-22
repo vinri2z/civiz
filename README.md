@@ -1,7 +1,7 @@
-# civiz — Vincent Rizzo, a scroll-driven 3D resume
+# civiz - Vincent Rizzo, a scroll-driven 3D resume
 
 A creative-coding personal resume. One continuous 3D scene; the camera flies a
-keyframed path as you scroll — **down moves forward, up moves back**. Each beat
+keyframed path as you scroll - **down moves forward, up moves back**. Each beat
 of the journey maps to a chapter of the CV, with an HTML card fading in over the
 3D set.
 
@@ -19,9 +19,9 @@ of the journey maps to a chapter of the CV, with an HTML card fading in over the
 
 ## Stack
 
-- [Three.js](https://threejs.org) — all scenes are procedural, built from
+- [Three.js](https://threejs.org) - all scenes are procedural, built from
   primitives (no external 3D assets).
-- [Vite](https://vitejs.dev) — dev server + build.
+- [Vite](https://vitejs.dev) - dev server + build.
 
 ## Run
 
@@ -36,10 +36,10 @@ npm run build    # production bundle in dist/
 
 ## Layout
 
-- `src/main.js` — renderer, camera keyframes, scroll → progress, overlay + fog.
-- `src/world.js` — one builder function per chapter, laid out along the −Z axis.
-- `src/content.js` — CV copy and the scroll window for each chapter card.
-- `src/style.css` — cards, timeline dots, progress bar.
+- `src/main.js` - renderer, camera keyframes, scroll → progress, overlay + fog.
+- `src/world.js` - one builder function per chapter, laid out along the −Z axis.
+- `src/content.js` - CV copy and the scroll window for each chapter card.
+- `src/style.css` - cards, timeline dots, progress bar.
 
 Timeline dots (right edge) let you jump to any chapter; the progress bar tracks
 position in the journey.

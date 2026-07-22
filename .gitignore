@@ -1,5 +1,9 @@
 node_modules/
 dist/
+.next/
+out/
 .DS_Store
 *.log
 .omc/
+.vercel
+.playwright-mcp/
