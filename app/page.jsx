@@ -27,9 +27,6 @@ export default function Page() {
             <a href="#experience">Experience</a>
             <a href="#skills">Stack</a>
             <a href="#education">Education</a>
-            <a className="cta" href="/immersive/index.html" target="_blank" rel="noopener">
-              Immersive 3D <IconExternal />
-            </a>
           </nav>
         </div>
       </header>
@@ -176,9 +173,6 @@ export default function Page() {
             </a>
             <a className="pill" href={links.github} target="_blank" rel="noopener" aria-label="GitHub">
               <IconGitHub /> GitHub
-            </a>
-            <a className="pill" href="/immersive/index.html" target="_blank" rel="noopener">
-              Immersive 3D <IconExternal />
             </a>
           </div>
         </footer>
