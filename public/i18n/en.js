@@ -5,7 +5,7 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).en = {
     code: "EN", label: "English (UK)",
-    nav: { about: "about", work: "work", skills: "skills", timeline: "timeline", contact: "Contact" },
+    nav: { about: "about", work: "work", skills: "skills", timeline: "timeline", contact: "contact" },
     hero: { loc: "Valencia, Spain", pron: "He/Him", title: "Senior Data Scientist · AI Engineer", tag: "GenAI & LLM applications", email: "Email", scroll: "SCROLL",
       summary: "Machine-learning and software engineer with 6+ years turning large text corpora such as regulations, annual reports and corporate disclosures into structured, queryable data. I build the whole path: classical filter, LLM extractor, and the evaluation harness that measures it." },
     about: { label: "// ethical use of AI", h1: "Ethical use of ", hAcc: "AI", h2: ".", stat: "years in ML & software",
