@@ -19,6 +19,7 @@
     sk: { label: "// aptituds", h: "Idiomes i més", langs: "Idiomes", beyond: "Maneres de treballar" },
     ct: { label: "// parlem-ne", h1: "Construeixes alguna cosa que llegeix", h2: "documents tot el dia?", p: "M'encantaria saber-ne més. Escriu-me: visc a València i treballo en remot.", footer: "© 2026 Vincent Rizzo · València, Espanya" },
     edu: [
+      { name: "Lycée Militaire d'Aix-en-Provence", sub: "Batxillerat científic, ciències de l'enginyeria · Felicitacions del jurat", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Matemàtiques i Física", place: "Versalles, FR" },
       { name: "CentraleSupélec", sub: "Màster en Enginyeria Industrial · Université Paris-Saclay", place: "Paris-Saclay, FR" },
       { name: "Universitat Politècnica de València", sub: "Doble màster en Enginyeria Industrial", place: "València, ES" },

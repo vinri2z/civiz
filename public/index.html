@@ -612,10 +612,11 @@ class Component extends DCLogic {
       queretaro: { n: 'Querétaro', c: [-100.3899, 20.5888] },
       saclay: { n: 'Paris-Saclay', c: [2.1657, 48.7100] },
       versailles: { n: 'Versailles', c: [2.1301, 48.8014] },
+      aix: { n: 'Aix-en-Provence', c: [5.4474, 43.5297] },
     };
 
     const rawEdu = [
-      { a: 2013.67, b: 2015.5 }, { a: 2015.67, b: 2020.5 }, { a: 2018.67, b: 2020.5 },
+      { a: 2010.67, b: 2013.5 }, { a: 2013.67, b: 2015.5 }, { a: 2015.67, b: 2020.5 }, { a: 2018.67, b: 2020.5 },
     ];
     const rawExp = [
       { a: 2018.0, b: 2018.5 }, { a: 2020.0, b: 2020.5 }, { a: 2020.5, b: 2022.67 }, { a: 2022.67, b: 2026.55 },
@@ -627,15 +628,18 @@ class Component extends DCLogic {
     let acc = 0;
     for (let i = 1; i < stops.length; i++) {
       const a = stops[i - 1], b = stops[i], span = b - a;
-      // the Product Data Scientist stretch (2020.5–2022.67) runs at full scale:
-      // no fold marker, all year ticks visible, so the globe travel reads smoothly
-      const noFold = (a >= 2020.4 && b <= 2022.75) || a >= 2022.6;
+      // the Product Data Scientist stretch (2020.5–2022.67) and everything after
+      // it run at 1.3x so the globe travel reads smoothly
+      const stretched = (a >= 2020.4 && b <= 2022.75) || a >= 2022.6;
+      // the lycée years (2010.67–2013.5) stay at plain scale but are never
+      // folded, so the year ticks back to 2010 all stay visible
+      const noFold = stretched || (a >= 2010.6 && b <= 2013.55);
       if (span > MAXGAP && !noFold) {
         const h = SCALE * 1.05 + SKIPPX;
         rawSkips.push({ a, b, span });
         acc += h;
       } else {
-        acc += span * SCALE * (noFold ? 1.3 : 1);
+        acc += span * SCALE * (stretched ? 1.3 : 1);
       }
       nodes.push({ d: b, p: acc });
     }
@@ -676,6 +680,8 @@ class Component extends DCLogic {
     };
 
     const eduBase = [
+      { logoId: "logo-lma", logoSrc: "", showLogo: false, mono: "LMA", color: teal0, barLeft: EDU_C0,
+        from: [2010, 9], to: [2013, 6], cities: [CITY.aix], ...seg(2010.67, 2013.5) },
       { logoId: "logo-ginette", logoSrc: "Lycee%20Sainte%20Genevieve%20Logo.png", showLogo: true, mono: "", color: teal0, barLeft: EDU_C0,
         from: [2013, 9], to: [2015, 6], cities: [CITY.versailles], ...seg(2013.67, 2015.5) },
       { logoId: "logo-centrale", logoSrc: "https://commons.wikimedia.org/wiki/Special:FilePath/Ecole_Centrale_Supelec_logo.svg", showLogo: true, mono: "", color: teal0, barLeft: EDU_C0,
@@ -725,7 +731,7 @@ class Component extends DCLogic {
 
     const inFold = (yr) => rawSkips.some(s => yr > s.a + 0.08 && yr < s.b - 0.08);
     const years = [];
-    for (let yr = 2014; yr <= 2026; yr++) if (!inFold(yr)) years.push({ label: String(yr), topPx: y(yr) });
+    for (let yr = 2010; yr <= 2026; yr++) if (!inFold(yr)) years.push({ label: String(yr), topPx: y(yr) });
 
     const lowest = Math.max(y(stops[0]), ...edu.map(e => e.cardY), ...exp.map(e => e.cardY));
     return { totalPx: +(lowest + 110).toFixed(1), showGrid, years, edu, exp, marks, skips };

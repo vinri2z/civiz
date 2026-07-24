@@ -19,6 +19,7 @@
     sk: { label: "// compétences", h: "Langues et au-delà", langs: "Langues", beyond: "Façons de travailler" },
     ct: { label: "// parlons-en", h1: "Vous construisez quelque chose qui lit", h2: "des documents à longueur de journée ?", p: "J'aimerais en entendre parler. Écrivez-moi — je suis basé à Valence et travaille à distance.", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
     edu: [
+      { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat scientifique, sciences de l'ingénieur · Félicitations du jury", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathématiques et Physique", place: "Versailles, FR" },
       { name: "CentraleSupélec", sub: "Diplôme d'ingénieur, génie industriel · Université Paris-Saclay", place: "Paris-Saclay, FR" },
       { name: "Universitat Politècnica de València", sub: "Double diplôme, génie industriel", place: "Valence, ES" },

@@ -19,6 +19,7 @@
     sk: { label: "// skills", h: "Languages & beyond", langs: "Languages", beyond: "Ways of working" },
     ct: { label: "// let's talk", h1: "Building something that reads", h2: "documents for a living?", p: "I'd love to hear about it. Reach out - I'm based in Valencia and work remotely.", footer: "© 2026 Vincent Rizzo · Valencia, Spain" },
     edu: [
+      { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat Scientifique, Engineering Sciences · Jury's commendation", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathematics & Physics", place: "Versailles, FR" },
       { name: "CentraleSupélec", sub: "MSc, Industrial Engineering · Université Paris-Saclay", place: "Paris-Saclay, FR" },
       { name: "Universitat Politècnica de València", sub: "Double MSc, Industrial Engineering", place: "València, ES" },
