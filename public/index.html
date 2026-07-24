@@ -500,13 +500,14 @@ class Component extends DCLogic {
     window.addEventListener('resize', resize);
     this._onResize = resize;
 
-    // flat waypoint list: item i owns [i, i+1), its cities spread evenly inside
+    // flat waypoint list: item i owns [i, i+1), its cities placed inside it at
+    // the offsets buildTimeline worked out from their date sub-ranges
     const flat = () => {
       const items = this._geoItems || [];
       const out = [];
       items.forEach((it, i) => {
         const n = it.cities.length;
-        it.cities.forEach((c, k) => out.push({ t: i + k / n, c: c.c, n: c.n }));
+        it.cities.forEach((c, k) => out.push({ t: i + ((it.offs && it.offs[k]) ?? k / n), c: c.c, n: c.n }));
       });
       return out;
     };
@@ -725,8 +726,11 @@ class Component extends DCLogic {
         from: [2018, 1], to: [2018, 6], cities: [CITY.madrid], ...seg(2018.0, 2018.5) },
       { logoId: "logo-dm", logoSrc: "datamaran-logo.svg", showLogo: true, color: g2, barLeft: EXP_L,
         from: [2020, 1], to: [2020, 7], cities: [CITY.valencia], ...seg(2020.0, 2020.5) },
+      // two cities in one entry: Querétaro from Jul 2020 to Aug 2022, London for
+      // the tail. `cityRanges` matches `cities`, newest first.
       { logoId: "logo-dm", logoSrc: "datamaran-logo.svg", showLogo: true, color: g3, barLeft: EXP_L,
-        from: [2020, 7], to: [2022, 9], cities: [CITY.london, CITY.queretaro], ...seg(2020.5, 2022.67) },
+        from: [2020, 7], to: [2022, 9], cities: [CITY.london, CITY.queretaro],
+        range: [2020.5, 2022.67], cityRanges: [[2022.583, 2022.667], [2020.5, 2022.583]], ...seg(2020.5, 2022.67) },
       { logoId: "logo-dm", logoSrc: "datamaran-logo.svg", showLogo: true, color: g4, barLeft: EXP_L,
         from: [2022, 9], to: null, cities: [CITY.valencia], ...seg(2022.67, 2026.55) },
     ];
@@ -759,10 +763,32 @@ class Component extends DCLogic {
     edu.forEach(e => { e.leaderLeft = 356; e.leaderW = e.barLeft - 356; });
     exp.concat(vol).forEach(e => { e.leaderLeft = EXP_L + BW; e.leaderW = EXP_CARD_LEFT - (EXP_L + BW); });
 
+    // Where each of an entry's cities sits inside the entry's slice of globe
+    // scroll, newest first. Entries with no declared sub-ranges keep the old
+    // even split. A city whose real sub-range is a sliver of the entry would
+    // flash past unreadably, so every city is floored at MIN_CITY_SHARE and the
+    // deficit is billed to the cities that have room.
+    const MIN_CITY_SHARE = 0.25;
+    const cityOffsets = (e) => {
+      const n = e.cities.length;
+      if (!e.cityRanges || !e.range || n < 2) return e.cities.map((_, k) => k / n);
+      const total = e.range[1] - e.range[0] || 1;
+      let shares = e.cityRanges.map(r => Math.max(0, (r[1] - r[0]) / total));
+      const sum = shares.reduce((a, b) => a + b, 0) || 1;
+      shares = shares.map(s => s / sum);
+      const deficit = shares.reduce((d, s) => d + Math.max(0, MIN_CITY_SHARE - s), 0);
+      const spare = shares.reduce((t, s) => t + Math.max(0, s - MIN_CITY_SHARE), 0);
+      if (deficit > 0 && spare > 0) {
+        shares = shares.map(s => s < MIN_CITY_SHARE ? MIN_CITY_SHARE : s - (s - MIN_CITY_SHARE) * (deficit / spare));
+      }
+      let at = 0;
+      return shares.map(s => { const o = at; at += s; return o; });
+    };
+
     // visual order, newest at top → globe waypoint order
     const all = edu.concat(exp).concat(vol).slice().sort((a, b) => a.cardY - b.cardY);
     all.forEach((e, k) => { e.geoI = k; });
-    this._geoItems = all.map(e => ({ cities: e.cities }));
+    this._geoItems = all.map(e => ({ cities: e.cities, offs: cityOffsets(e) }));
 
     const marks = [];
     edu.concat(exp).concat(vol).forEach(e => marks.push({ topPx: e.topPx, leftPx: e.barLeft + BW / 2, color: e.color }));
