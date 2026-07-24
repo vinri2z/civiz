@@ -217,7 +217,10 @@
     <div data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:flex;gap:24px;flex-wrap:wrap;font-family:'JetBrains Mono';font-size:12px;color:oklch(0.48 0.03 150);margin-bottom:46px">
       <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.63 0.1 208)"></span>{{ t.tl.eduLegend }}</span>
       <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.55 0.13 150)"></span>{{ t.tl.expLegend }}</span>
-      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:0;border-top:1px dashed oklch(0.74 0.02 150)"></span>{{ t.tl.foldLegend }}</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.72 0.14 62)"></span>{{ t.tl.volLegend }}</span>
+      <sc-if value="{{ tl.hasFolds }}" hint-placeholder-val="{{ true }}">
+        <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:0;border-top:1px dashed oklch(0.74 0.02 150)"></span>{{ t.tl.foldLegend }}</span>
+      </sc-if>
     </div>
 
     <div style="overflow-x:auto;overflow-y:hidden;padding-bottom:12px">
@@ -236,6 +239,9 @@
           <div data-reveal="" data-i="{{ e.i }}" style="opacity:1;transform:scaleY(0);transform-origin:top;transition:transform 1.1s cubic-bezier(.22,.61,.36,1);position:absolute;top:{{ e.topPx }}px;height:{{ e.hPx }}px;left:{{ e.barLeft }}px;width:16px;border-radius:9px;background:{{ e.color }};z-index:2"></div>
         </sc-for>
         <sc-for list="{{ tl.exp }}" as="e" hint-placeholder-count="4">
+          <div data-reveal="" data-i="{{ e.i }}" style="opacity:1;transform:scaleY(0);transform-origin:top;transition:transform 1.1s cubic-bezier(.22,.61,.36,1);position:absolute;top:{{ e.topPx }}px;height:{{ e.hPx }}px;left:{{ e.barLeft }}px;width:16px;border-radius:9px;background:{{ e.color }};z-index:2"></div>
+        </sc-for>
+        <sc-for list="{{ tl.vol }}" as="e" hint-placeholder-count="2">
           <div data-reveal="" data-i="{{ e.i }}" style="opacity:1;transform:scaleY(0);transform-origin:top;transition:transform 1.1s cubic-bezier(.22,.61,.36,1);position:absolute;top:{{ e.topPx }}px;height:{{ e.hPx }}px;left:{{ e.barLeft }}px;width:16px;border-radius:9px;background:{{ e.color }};z-index:2"></div>
         </sc-for>
 
@@ -287,6 +293,17 @@
               </div>
               <div style="font-family:'JetBrains Mono';font-size:11.5px;color:oklch(0.5 0.08 150);margin-top:6px">{{ e.meta }} · {{ e.place }}</div>
               <p style="font-size:14px;line-height:1.55;color:oklch(0.44 0.02 150);margin-top:8px;text-wrap:pretty">{{ e.note }}</p>
+            </div>
+          </div>
+        </sc-for>
+
+        <sc-for list="{{ tl.vol }}" as="e" hint-placeholder-count="2">
+          <div style="position:absolute;top:{{ e.cardY }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:oklch(0.86 0.02 150);z-index:1"></div>
+          <div data-geo-i="{{ e.geoI }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:290px;transform:translateY(-50%);text-align:left;z-index:4">
+            <div data-reveal="" data-i="{{ e.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
+              <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);line-height:1.15">{{ e.name }}</h3>
+              <div style="font-size:14.5px;line-height:1.4;color:oklch(0.44 0.03 150);margin-top:4px;text-wrap:pretty">{{ e.sub }}</div>
+              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:oklch(0.52 0.11 62);margin-top:7px">{{ e.meta }} · {{ e.place }}</div>
             </div>
           </div>
         </sc-for>
@@ -613,6 +630,8 @@ class Component extends DCLogic {
       saclay: { n: 'Paris-Saclay', c: [2.1657, 48.7100] },
       versailles: { n: 'Versailles', c: [2.1301, 48.8014] },
       aix: { n: 'Aix-en-Provence', c: [5.4474, 43.5297] },
+      toamasina: { n: 'Toamasina', c: [49.4023, -18.1492] },
+      boulajoul: { n: 'Boulajoul', c: [-4.9625, 32.8811] },
     };
 
     const rawEdu = [
@@ -621,8 +640,13 @@ class Component extends DCLogic {
     const rawExp = [
       { a: 2018.0, b: 2018.5 }, { a: 2020.0, b: 2020.5 }, { a: 2020.5, b: 2022.67 }, { a: 2022.67, b: 2026.55 },
     ];
+    // the 4L Trophy is a single event: it spans its month so the bar reads as a
+    // pill rather than collapsing to zero height
+    const rawVol = [
+      { a: 2016.5, b: 2016.667 }, { a: 2017.083, b: 2017.167 },
+    ];
 
-    const stops = Array.from(new Set(rawEdu.concat(rawExp).flatMap(s => [s.a, s.b]))).sort((x, z) => x - z);
+    const stops = Array.from(new Set(rawEdu.concat(rawExp).concat(rawVol).flatMap(s => [s.a, s.b]))).sort((x, z) => x - z);
     const nodes = [{ d: stops[0], p: 0 }];
     const rawSkips = [];
     let acc = 0;
@@ -678,6 +702,8 @@ class Component extends DCLogic {
       const b = to ? M[to[1] - 1] + " " + to[0] : L.tl.present;
       return a + " – " + b;
     };
+    // single-day/single-month entries read as one date, not as an open range
+    const metaOne = (from) => L.tl.months[from[1] - 1] + " " + from[0];
 
     const eduBase = [
       { logoId: "logo-lma", logoSrc: "", showLogo: false, mono: "LMA", color: teal0, barLeft: EDU_C0,
@@ -708,6 +734,19 @@ class Component extends DCLogic {
       ...e, ...L.exp[i], meta: meta(e.from, e.to), cardLeft: EXP_CARD_LEFT, i,
     }));
 
+    // Volunteering shares the right-hand column with Experience — nothing else
+    // sits there in 2016-2017 — but carries its own amber and its own legend.
+    const amber = "oklch(0.72 0.14 62)";
+    const volBase = [
+      { color: amber, barLeft: EXP_L,
+        from: [2016, 7], to: [2016, 8], cities: [CITY.toamasina], ...seg(2016.5, 2016.667) },
+      { color: amber, barLeft: EXP_L, single: true,
+        from: [2017, 2], to: null, cities: [CITY.boulajoul], ...seg(2017.083, 2017.167) },
+    ];
+    const vol = volBase.map((e, i) => ({
+      ...e, ...L.vol[i], meta: e.single ? metaOne(e.from) : meta(e.from, e.to), cardLeft: EXP_CARD_LEFT, i,
+    }));
+
     const spread = (arr, minGap) => {
       const order = arr.slice().sort((a, b) => a.midPx - b.midPx);
       order.forEach((e, i) => {
@@ -716,25 +755,24 @@ class Component extends DCLogic {
       });
     };
     spread(edu, 196);
-    spread(exp, 172);
+    spread(exp.concat(vol), 172); // one column, so they must be spread together
     edu.forEach(e => { e.leaderLeft = 356; e.leaderW = e.barLeft - 356; });
-    exp.forEach(e => { e.leaderLeft = EXP_L + BW; e.leaderW = EXP_CARD_LEFT - (EXP_L + BW); });
+    exp.concat(vol).forEach(e => { e.leaderLeft = EXP_L + BW; e.leaderW = EXP_CARD_LEFT - (EXP_L + BW); });
 
     // visual order, newest at top → globe waypoint order
-    const all = edu.concat(exp).slice().sort((a, b) => a.cardY - b.cardY);
+    const all = edu.concat(exp).concat(vol).slice().sort((a, b) => a.cardY - b.cardY);
     all.forEach((e, k) => { e.geoI = k; });
     this._geoItems = all.map(e => ({ cities: e.cities }));
 
     const marks = [];
-    edu.forEach(e => marks.push({ topPx: e.topPx, leftPx: e.barLeft + BW / 2, color: e.color }));
-    exp.forEach(e => marks.push({ topPx: e.topPx, leftPx: e.barLeft + BW / 2, color: e.color }));
+    edu.concat(exp).concat(vol).forEach(e => marks.push({ topPx: e.topPx, leftPx: e.barLeft + BW / 2, color: e.color }));
 
     const inFold = (yr) => rawSkips.some(s => yr > s.a + 0.08 && yr < s.b - 0.08);
     const years = [];
     for (let yr = 2010; yr <= 2026; yr++) if (!inFold(yr)) years.push({ label: String(yr), topPx: y(yr) });
 
-    const lowest = Math.max(y(stops[0]), ...edu.map(e => e.cardY), ...exp.map(e => e.cardY));
-    return { totalPx: +(lowest + 110).toFixed(1), showGrid, years, edu, exp, marks, skips };
+    const lowest = Math.max(y(stops[0]), ...edu.concat(exp).concat(vol).map(e => e.cardY));
+    return { totalPx: +(lowest + 110).toFixed(1), showGrid, years, edu, exp, vol, marks, skips, hasFolds: skips.length > 0 };
   }
 
   getStrings() {

@@ -11,7 +11,7 @@
     about: { label: "// usage éthique de l'IA", h1: "Un usage éthique de l'", hAcc: "IA", h2: ".", stat: "ans en ML et logiciel",
       body: "Je travaille pour que nous tirions le meilleur des LLM là où c'est pertinent, en gardant toujours des garde-fous, des métriques strictes et un humain dans la boucle." },
     tl: { label: "// expérience et formation", h: "Une seule frise", p: "Tout ce que j'ai étudié et construit, du plus récent au plus ancien, tracé à l'échelle.",
-      eduLegend: "Formation", expLegend: "Expérience", foldLegend: "Temps replié",
+      eduLegend: "Formation", expLegend: "Expérience", volLegend: "Bénévolat", foldLegend: "Temps replié",
       yr1: "an", yrN: "ans", mo1: "mois", moN: "mois", present: "Aujourd'hui",
       months: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."] },
     work: { label: "// travaux sélectionnés", h: "Ce que j'ai construit", p: "Des systèmes qui lisent des documents à grande échelle. Ouvrez un projet pour le détail technique.", show: "Voir le détail ▾", hide: "Masquer le détail ▴", deck: "Voir la présentation" },
@@ -23,6 +23,10 @@
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathématiques et Physique", place: "Versailles, FR" },
       { name: "CentraleSupélec", sub: "Diplôme d'ingénieur, génie industriel · Université Paris-Saclay", place: "Paris-Saclay, FR" },
       { name: "Universitat Politècnica de València", sub: "Double diplôme, génie industriel", place: "Valence, ES" },
+    ],
+    vol: [
+      { name: "Les Enfants du Soleil", sub: "Bénévole · association pour l'enfance", place: "Toamasina, MG" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Équipage · rallye étudiant, livraison de fournitures scolaires", place: "Boulajoul, MA" },
     ],
     exp: [
       { role: "Stagiaire automatisation QA", org: "Selectra", place: "Madrid, ES", note: "Automatisation des tests avec Katalon, Selenium et Groovy." },

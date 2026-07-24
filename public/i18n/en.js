@@ -11,7 +11,7 @@
     about: { label: "// ethical use of AI", h1: "Ethical use of ", hAcc: "AI", h2: ".", stat: "years in ML & software",
       body: "I work to help us make the most out of LLMs where it applies, and keep always guardrails, strict metrics and a human in the loop." },
     tl: { label: "// experience & education", h: "One timeline", p: "Everything I've studied and built, newest first and drawn to scale.",
-      eduLegend: "Education", expLegend: "Experience", foldLegend: "Time folded",
+      eduLegend: "Education", expLegend: "Experience", volLegend: "Volunteering", foldLegend: "Time folded",
       yr1: "yr", yrN: "yr", mo1: "mo", moN: "mo", present: "Present",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] },
     work: { label: "// selected work", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck" },
@@ -23,6 +23,10 @@
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathematics & Physics", place: "Versailles, FR" },
       { name: "CentraleSupélec", sub: "MSc, Industrial Engineering · Université Paris-Saclay", place: "Paris-Saclay, FR" },
       { name: "Universitat Politècnica de València", sub: "Double MSc, Industrial Engineering", place: "València, ES" },
+    ],
+    vol: [
+      { name: "Les Enfants du Soleil", sub: "Volunteer · children's charity", place: "Toamasina, MG" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Crew · student rally delivering school supplies", place: "Boulajoul, MA" },
     ],
     exp: [
       { role: "QA Automation Intern", org: "Selectra", place: "Madrid, ES", note: "Test automation with Katalon, Selenium & Groovy." },

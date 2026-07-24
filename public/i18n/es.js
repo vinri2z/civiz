@@ -11,7 +11,7 @@
     about: { label: "// uso ético de la IA", h1: "Uso ético de la ", hAcc: "IA", h2: ".", stat: "años en ML y software",
       body: "Trabajo para sacar el máximo partido a los LLM donde tiene sentido, manteniendo siempre barreras de seguridad, métricas estrictas y una persona en el bucle." },
     tl: { label: "// experiencia y formación", h: "Una sola línea", p: "Todo lo que he estudiado y construido, de lo más reciente a lo más antiguo y a escala.",
-      eduLegend: "Formación", expLegend: "Experiencia", foldLegend: "Tiempo plegado",
+      eduLegend: "Formación", expLegend: "Experiencia", volLegend: "Voluntariado", foldLegend: "Tiempo plegado",
       yr1: "año", yrN: "años", mo1: "mes", moN: "meses", present: "Actualidad",
       months: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"] },
     work: { label: "// trabajos seleccionados", h: "Lo que he construido", p: "Sistemas que leen documentos a escala. Abre cualquier proyecto para ver el detalle técnico.", show: "Ver detalle ▾", hide: "Ocultar detalle ▴", deck: "Ver la presentación" },
@@ -23,6 +23,10 @@
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Matemáticas y Física", place: "Versalles, FR" },
       { name: "CentraleSupélec", sub: "Máster en Ingeniería Industrial · Université Paris-Saclay", place: "Paris-Saclay, FR" },
       { name: "Universitat Politècnica de València", sub: "Doble máster en Ingeniería Industrial", place: "Valencia, ES" },
+    ],
+    vol: [
+      { name: "Les Enfants du Soleil", sub: "Voluntario · ONG de infancia", place: "Toamasina, MG" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Tripulación · rally estudiantil de reparto de material escolar", place: "Boulajoul, MA" },
     ],
     exp: [
       { role: "Becario de automatización QA", org: "Selectra", place: "Madrid, ES", note: "Automatización de pruebas con Katalon, Selenium y Groovy." },
