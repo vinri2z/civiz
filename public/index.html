@@ -533,8 +533,6 @@ class Component extends DCLogic {
         return { i: +el.dataset.geoI, y: r.top + r.height / 2 };
       }).sort((a, b) => a.i - b.i);
       if (!nodes.length) return 0;
-      const sec = document.getElementById('experience');
-      if (sec && sec.getBoundingClientRect().bottom < 0) return 0; // past the timeline → home
       const c = window.innerHeight * 0.5;
       if (c <= nodes[0].y) return nodes[0].i;
       const last = nodes[nodes.length - 1];
@@ -572,21 +570,47 @@ class Component extends DCLogic {
     canvas.style.opacity = '0.62';
     if (placeEl) placeEl.style.opacity = '1';
 
+    // The globe only tracks the timeline while the viewport centre is inside it.
+    // Everywhere else — hero, about, work, skills above it, contact below — it
+    // spins slowly instead of sitting locked on one waypoint.
+    const IDLE_SPIN = 0.045; // deg/frame ≈ one turn every two minutes at 60fps
+    const onTimeline = () => {
+      const sec = document.getElementById('experience');
+      if (!sec) return false;
+      const r = sec.getBoundingClientRect(), c = window.innerHeight * 0.5;
+      return r.top <= c && r.bottom >= c;
+    };
+
     const frame = () => {
       if (this._dead) return;
-      const { pt, idx, pts } = target();
-      let dl = pt[0] - cur[0];
-      while (dl > 180) dl -= 360;
-      while (dl < -180) dl += 360;
-      const dp = pt[1] - cur[1];
-      cur[0] += dl * 0.055; cur[1] += dp * 0.055;
-      const moving = Math.abs(dl) > 0.02 || Math.abs(dp) > 0.02;
-      if (moving) settled = 0; else settled++;
+      const idle = !onTimeline();
+      let idx = lastIdx, pts = null;
 
-      if (idx !== lastIdx) {
-        lastIdx = idx;
-        if (nameEl && pts[idx]) nameEl.textContent = pts[idx].n;
+      if (idle) {
+        // carry on from wherever the globe is, so entering and leaving the
+        // timeline never snaps
+        cur[0] += IDLE_SPIN;
+        if (cur[0] > 180) cur[0] -= 360;
+        settled = 0;
+      } else {
+        const t = target();
+        pts = t.pts; idx = t.idx;
+        let dl = t.pt[0] - cur[0];
+        while (dl > 180) dl -= 360;
+        while (dl < -180) dl += 360;
+        const dp = t.pt[1] - cur[1];
+        cur[0] += dl * 0.055; cur[1] += dp * 0.055;
+        const moving = Math.abs(dl) > 0.02 || Math.abs(dp) > 0.02;
+        if (moving) settled = 0; else settled++;
+
+        if (idx !== lastIdx) {
+          lastIdx = idx;
+          if (nameEl && pts[idx]) nameEl.textContent = pts[idx].n;
+        }
       }
+
+      // the place name means nothing while the globe is free-spinning
+      if (placeEl) placeEl.style.opacity = idle ? '0' : '1';
 
       if (settled < 3) {
         projection.rotate([-cur[0], -cur[1]]);
@@ -606,9 +630,10 @@ class Component extends DCLogic {
         ctx.lineWidth = 1.2; ctx.strokeStyle = 'oklch(0.82 0.05 175)'; ctx.stroke();
 
         const center = [-projection.rotate()[0], -projection.rotate()[1]];
-        const active = pts[Math.max(0, Math.min(idx, pts.length - 1))];
+        const wp = pts || flat();
+        const active = pts ? wp[Math.max(0, Math.min(idx, wp.length - 1))] : null;
         const seen = {};
-        pts.forEach(p => {
+        wp.forEach(p => {
           const key = p.c.join(',');
           if (seen[key]) return;
           seen[key] = 1;
