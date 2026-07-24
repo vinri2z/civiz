@@ -11,7 +11,7 @@
     about: { label: "// usage éthique de l'IA", h1: "Un usage éthique de l'", hAcc: "IA", h2: ".", stat: "ans en ML et logiciel",
       body: "Je travaille pour que nous tirions le meilleur des LLM là où c'est pertinent, en gardant toujours des garde-fous, des métriques strictes et un humain dans la boucle." },
     tl: { label: "// expérience et formation", h: "Une seule frise", p: "Tout ce que j'ai étudié et construit, du plus récent au plus ancien, tracé à l'échelle.",
-      eduLegend: "Formation", expLegend: "Expérience", volLegend: "Bénévolat", foldLegend: "Temps replié",
+      eduLegend: "Formation", expLegend: "Expérience", volLegend: "Bénévolat", projLegend: "Projets", foldLegend: "Temps replié",
       yr1: "an", yrN: "ans", mo1: "mois", moN: "mois", present: "Aujourd'hui",
       months: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."] },
     work: { label: "// travaux sélectionnés", h: "Ce que j'ai construit", p: "Des systèmes qui lisent des documents à grande échelle. Ouvrez un projet pour le détail technique.", show: "Voir le détail ▾", hide: "Masquer le détail ▴", deck: "Voir la présentation" },

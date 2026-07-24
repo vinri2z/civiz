@@ -11,7 +11,7 @@
     about: { label: "// uso ético de la IA", h1: "Uso ético de la ", hAcc: "IA", h2: ".", stat: "años en ML y software",
       body: "Trabajo para sacar el máximo partido a los LLM donde tiene sentido, manteniendo siempre barreras de seguridad, métricas estrictas y una persona en el bucle." },
     tl: { label: "// experiencia y formación", h: "Una sola línea", p: "Todo lo que he estudiado y construido, de lo más reciente a lo más antiguo y a escala.",
-      eduLegend: "Formación", expLegend: "Experiencia", volLegend: "Voluntariado", foldLegend: "Tiempo plegado",
+      eduLegend: "Formación", expLegend: "Experiencia", volLegend: "Voluntariado", projLegend: "Proyectos", foldLegend: "Tiempo plegado",
       yr1: "año", yrN: "años", mo1: "mes", moN: "meses", present: "Actualidad",
       months: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"] },
     work: { label: "// trabajos seleccionados", h: "Lo que he construido", p: "Sistemas que leen documentos a escala. Abre cualquier proyecto para ver el detalle técnico.", show: "Ver detalle ▾", hide: "Ocultar detalle ▴", deck: "Ver la presentación" },

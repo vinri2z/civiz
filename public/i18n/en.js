@@ -11,7 +11,7 @@
     about: { label: "// ethical use of AI", h1: "Ethical use of ", hAcc: "AI", h2: ".", stat: "years in ML & software",
       body: "I work to help us make the most out of LLMs where it applies, and keep always guardrails, strict metrics and a human in the loop." },
     tl: { label: "// experience & education", h: "One timeline", p: "Everything I've studied and built, newest first and drawn to scale.",
-      eduLegend: "Education", expLegend: "Experience", volLegend: "Volunteering", foldLegend: "Time folded",
+      eduLegend: "Education", expLegend: "Experience", volLegend: "Volunteering", projLegend: "Projects", foldLegend: "Time folded",
       yr1: "yr", yrN: "yr", mo1: "mo", moN: "mo", present: "Present",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] },
     work: { label: "// selected work", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck" },
