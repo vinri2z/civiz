@@ -19,14 +19,21 @@ import assert from 'node:assert/strict';
 import '../public/i18n/en.js';
 import '../public/cv-logic.js';
 
-const { buildTimeline } = globalThis.CV_LOGIC;
+const { buildTimeline, authorEntries } = globalThis.CV_LOGIC;
 const EN = globalThis.CV_I18N.en;
 
+// The author's own entries, fed to the builder the way an imported profile's
+// would be — the whole point of the parameterisation is that there is one path.
+const ENTRIES = authorEntries(EN, { lang: 'en', goTo: () => {} });
+
+const build = (o) => buildTimeline({
+  entries: ENTRIES, vw: 1440, yearScale: 180, showGrid: true, cardH: {}, ...o,
+}, EN);
 // The two-column desktop layout at the default time scale — the geometry the
 // hand-authored page was tuned against.
-const wide = () => buildTimeline({ vw: 1440, yearScale: 180, showGrid: true, cardH: {}, lang: 'en', goTo: () => {} }, EN);
+const wide = () => build({});
 // One full-width column, below NARROW_PX.
-const narrow = () => buildTimeline({ vw: 390, yearScale: 180, showGrid: true, cardH: {}, lang: 'en', goTo: () => {} }, EN);
+const narrow = () => build({ vw: 390 });
 
 test('every lane the author has is drawn', () => {
   const tl = wide();
@@ -162,18 +169,21 @@ test('the page is tall enough for the axis and for every card', () => {
 });
 
 test('gridlines can be turned off', () => {
-  const off = buildTimeline({ vw: 1440, yearScale: 180, showGrid: false, cardH: {}, lang: 'en', goTo: () => {} }, EN);
+  const off = build({ showGrid: false });
   assert.equal(off.showGrid, false);
 });
 
 test('the time scale is honoured', () => {
-  const a = buildTimeline({ vw: 1440, yearScale: 120, showGrid: true, cardH: {}, lang: 'en', goTo: () => {} }, EN);
-  const b = buildTimeline({ vw: 1440, yearScale: 240, showGrid: true, cardH: {}, lang: 'en', goTo: () => {} }, EN);
+  const a = build({ yearScale: 120 });
+  const b = build({ yearScale: 240 });
   assert.ok(b.exp[3].hPx > a.exp[3].hPx * 1.5, 'doubling px/yr roughly doubles a bar');
 });
 
 test('project cards link back to their Work-section card in the current language', () => {
-  const tl = buildTimeline({ vw: 1440, yearScale: 180, showGrid: true, cardH: {}, lang: 'fr', goTo: () => {} }, EN);
+  const tl = buildTimeline({
+    entries: authorEntries(EN, { lang: 'fr', goTo: () => {} }),
+    vw: 1440, yearScale: 180, showGrid: true, cardH: {},
+  }, EN);
   tl.proj.forEach(p => {
     assert.match(p.workHref, /^#projects\?lang=fr&p=/);
   });

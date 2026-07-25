@@ -73,10 +73,58 @@
     return strings[c] ? c : 'en';
   }
 
-  // ctx: { vw, yearScale, showGrid, cardH, lang, goTo }
-  // Returns the geometry the template renders, plus `geoItems` — the globe's
-  // waypoint list, which used to be stashed on the component as `_geoItems`.
+  // Fractional years, the unit the whole timeline works in. A start is the first
+  // instant of its month, an end the last — [2013, 6] as an end means "through
+  // June 2013", so it lands on 2013.5.
+  const fracStart = ([y, m]) => y + (m - 1) / 12;
+  const fracEnd = ([y, m]) => y + m / 12;
+
+  // Colours. The graded greens run oldest to newest through the experience lane
+  // and the two teals separate an education entry from one it overlaps; both were
+  // picked by eye, so entries carry them explicitly rather than having them
+  // derived. A lane's `defaultColor` is what an imported entry gets.
+  const TEAL_0 = "oklch(0.68 0.085 205)", TEAL_1 = "oklch(0.6 0.1 210)";
+  const GREEN_1 = "oklch(0.75 0.05 150)", GREEN_2 = "oklch(0.71 0.09 152)";
+  const GREEN_3 = "oklch(0.62 0.12 150)", GREEN_4 = "oklch(0.53 0.13 150)";
+  const AMBER = "oklch(0.72 0.14 62)", VIOLET = "oklch(0.58 0.15 300)";
+
+  // Which lanes exist, in legend order, and everything about how one is drawn.
+  // The pixel values that depend on viewport width are filled in per call; what
+  // lives here is the part that doesn't.
+  const LANE_ORDER = ['education', 'experience', 'volunteering', 'project'];
+  const LANE_DEFS = {
+    education: {
+      ck: 'edu', column: 'left', mark: true, defaultColor: TEAL_0,
+      legendColor: 'oklch(0.63 0.1 208)', legendW: 14, legendKey: 'eduLegend',
+    },
+    experience: {
+      ck: 'exp', column: 'right', mark: true, defaultColor: GREEN_3,
+      legendColor: 'oklch(0.55 0.13 150)', legendW: 14, legendKey: 'expLegend',
+    },
+    volunteering: {
+      ck: 'vol', column: 'right', mark: true, defaultColor: AMBER,
+      legendColor: 'oklch(0.72 0.14 62)', legendW: 14, legendKey: 'volLegend',
+    },
+    project: {
+      // a project is a slimmer bar with no mark of its own, inset so two
+      // adjacent ones leave a visible seam
+      ck: 'proj', column: 'left', mark: false, inset: true, slim: true,
+      defaultColor: VIOLET,
+      legendColor: 'oklch(0.58 0.15 300)', legendW: 8, legendKey: 'projLegend',
+    },
+  };
+
+  // The geometry, from entries. `ctx.entries` is a flat list where each entry
+  // carries a `kind` from LANE_ORDER, a `from`/`to` pair of [year, month] (a null
+  // `to` meaning present), optionally an explicit fractional-year `range`, a
+  // `cities` array, and whatever copy its lane's card renders. Two optional
+  // properties replace what used to be date-literal conditions in here:
+  // `stretch` runs the entry at a wider scale, `noFoldBefore` keeps the gap
+  // immediately before it from being folded. Both default to off.
+  //
+  // ctx: { entries, vw, yearScale, showGrid, cardH, now }
   function buildTimeline(ctx, L) {
+    const input = ctx.entries || [];
     const viewportW = () => ctx.vw || 1200;
     // Phones get a different geometry, not a scaled-down one: the axis moves to
     // the left edge and every card sits to its right in a single column, because
@@ -89,11 +137,12 @@
     const showGrid = ctx.showGrid ?? true;
     const PAD = 30, C = 420, MAXGAP = 2, SKIPPX = 46;
     const BW = narrow ? 12 : 16;
-    // Narrow lanes, left to right: education, experience + volunteering, and the
-    // one education entry (UPV) that overlaps another. Three lanes is the minimum
-    // that keeps every bar visible, since edu/exp/vol all overlap in 2016-2020.
+    // Narrow lanes, left to right: education, experience + volunteering, and a
+    // second education column for an entry that overlaps another. Three lanes is
+    // the minimum that keeps every bar visible when education, experience and
+    // volunteering all run at once.
     const EDU_C0 = narrow ? 8 : C - 22, EDU_C1 = narrow ? 40 : C - 48, EXP_L = narrow ? 24 : C + 6;
-    // CARD_W mirrors the width the card blocks are given in the markup below —
+    // CARD_W mirrors the width the card blocks are given in the markup —
     // keep the two in step
     const SIDE_PAD = viewportW() < PHONE_PX ? 18 : 32; // the section's own padding
     const innerW = Math.max(276, viewportW() - SIDE_PAD * 2);
@@ -104,20 +153,21 @@
     // where the left-hand column's leader lines start, just clear of those cards
     const LEFT_LEADER_X = EDU_CARD_LEFT + CARD_W + 4;
     // Projects sit on the left, in Education's own lane: a slimmer bar centred on
-    // the same line, labels in the same right-aligned card column. The two never
-    // overlap vertically — education ends in 2020, the projects start in 2024 —
-    // so they share the column instead of each needing one.
+    // the same line, labels in the same right-aligned card column. Where the two
+    // do overlap in time, the shared-column spread pushes their cards apart.
     const PROJ_BW = 8, PROJ_L = EDU_C0 + (BW - PROJ_BW) / 2, PROJ_CARD_LEFT = EDU_CARD_LEFT;
-    // Each category's minimum vertical footprint, used to push colliding cards
-    // apart. Narrow cards wrap into more lines so they need more room than the
+    // Each lane's minimum vertical footprint, used to push colliding cards apart.
+    // Narrow cards wrap into more lines so they need more room than the
     // two-column ones, but only just: every pixel of slack here becomes drift
     // between a card and the bar it belongs to. Volunteering gets its own gap
     // rather than borrowing Experience's — its cards are three short lines, and
     // billing them for a full job card's height pushed them furthest of all.
-    const EDU_GAP = narrow ? 180 : 196;
-    const EXP_GAP = narrow ? 188 : 172;
-    const VOL_GAP = narrow ? 124 : 172;
-    const PROJ_GAP = narrow ? 116 : 56;
+    const LANE_GAP = {
+      education: narrow ? 180 : 196,
+      experience: narrow ? 188 : 172,
+      volunteering: narrow ? 124 : 172,
+      project: narrow ? 116 : 56,
+    };
     // In one column the gap is the card's measured height plus a little air, so a
     // card is only ever pushed off its own bar by as much as its neighbour truly
     // needs. The constants above are the first-paint fallback, before
@@ -131,53 +181,107 @@
     const RIGHT_TEXT = { align: 'right', logoML: 'auto', logoJust: 'flex-end' };
     const LEFT_TEXT = { align: 'left', logoML: '0', logoJust: 'flex-start' };
     const leftColText = narrow ? LEFT_TEXT : RIGHT_TEXT;
-    const teal0 = "oklch(0.68 0.085 205)", teal1 = "oklch(0.6 0.1 210)";
+    const HAIR = 'oklch(0.86 0.02 150)', HAIR_SLOPE = 'oklch(0.78 0.03 150)';
+    const PHAIR = 'oklch(0.86 0.03 300)', PHAIR_SLOPE = 'oklch(0.76 0.07 300)';
 
-    const CITY = {
-      valencia: { n: 'València', c: [-0.3763, 39.4699] },
-      madrid: { n: 'Madrid', c: [-3.7038, 40.4168] },
-      london: { n: 'London', c: [-0.1276, 51.5072] },
-      queretaro: { n: 'Querétaro', c: [-100.3899, 20.5888] },
-      saclay: { n: 'Paris-Saclay', c: [2.1657, 48.7100] },
-      versailles: { n: 'Versailles', c: [2.1301, 48.8014] },
-      aix: { n: 'Aix-en-Provence', c: [5.4474, 43.5297] },
-      toamasina: { n: 'Toamasina', c: [49.4023, -18.1492] },
-      boulajoul: { n: 'Boulajoul', c: [-4.9625, 32.8811] },
+    // the per-call half of each lane's geometry
+    const LANES = {};
+    LANE_ORDER.forEach(k => {
+      const d = LANE_DEFS[k];
+      LANES[k] = {
+        ...d,
+        // an entry's `sublane` picks a bar column; only education has a second one
+        barCols: k === 'education' ? [EDU_C0, EDU_C1] : k === 'project' ? [PROJ_L] : [EXP_L],
+        bw: d.slim ? PROJ_BW : BW,
+        cardLeft: d.column === 'left' ? EDU_CARD_LEFT : EXP_CARD_LEFT,
+        gap: LANE_GAP[k],
+        text: d.column === 'left' ? leftColText : LEFT_TEXT,
+        hair: d.ck === 'proj' ? PHAIR : HAIR,
+        hairSlope: d.ck === 'proj' ? PHAIR_SLOPE : HAIR_SLOPE,
+      };
+    });
+
+    // An entry may state its own fractional-year span — the author's entries do,
+    // so their hand-tuned positions survive to the decimal — otherwise it is
+    // derived from the month pair. An entry with no end is open at `now`.
+    const nowFrac = ctx.now ?? (() => {
+      const d = new Date();
+      return d.getFullYear() + (d.getMonth() + 1) / 12;
+    })();
+    const rangeOf = (e) => e.range
+      ? e.range
+      : [fracStart(e.from), e.to ? fracEnd(e.to) : nowFrac];
+
+    const meta = (from, to) => {
+      const M = L.tl.months;
+      const a = M[from[1] - 1] + " " + from[0];
+      // a one-month entry reads as a single date, not as a range or as open-ended
+      if (to && to[0] === from[0] && to[1] === from[1]) return a;
+      const b = to ? M[to[1] - 1] + " " + to[0] : L.tl.present;
+      return a + " – " + b;
     };
 
-    const rawEdu = [
-      { a: 2010.67, b: 2013.5 }, { a: 2013.67, b: 2015.5 }, { a: 2015.67, b: 2020.5 }, { a: 2018.67, b: 2020.5 },
-    ];
-    const rawExp = [
-      { a: 2018.0, b: 2018.5 }, { a: 2020.0, b: 2020.5 }, { a: 2020.5, b: 2022.67 }, { a: 2022.67, b: 2026.55 },
-    ];
-    // the 4L Trophy is a single event: it spans its month so the bar reads as a
-    // pill rather than collapsing to zero height
-    const rawVol = [
-      { a: 2016.5, b: 2016.667 }, { a: 2017.083, b: 2017.167 },
-    ];
+    const fold = (yrs) => {
+      const m = Math.round(yrs * 12), Y = Math.floor(m / 12), M = m % 12;
+      let out = Y + " " + (Y === 1 ? L.tl.yr1 : L.tl.yrN);
+      if (M) out += " " + M + " " + (M === 1 ? L.tl.mo1 : L.tl.moN);
+      return out;
+    };
 
-    // The axis floor is a round year below the earliest entry (Sep 2010) so the
-    // 2010 gridline can sit at its true position. Without it, posOf clamps
-    // everything at or below the first entry to the same pixel and the 2010 tick
-    // lands on top of the 2010.67 one.
-    const AXIS_FLOOR = 2010;
-    const stops = Array.from(new Set([AXIS_FLOOR].concat(rawEdu.concat(rawExp).concat(rawVol).flatMap(s => [s.a, s.b])))).sort((x, z) => x - z);
+    const emptyLanes = () => {
+      const out = {};
+      LANE_ORDER.forEach(k => { out[LANE_DEFS[k].ck] = []; });
+      return out;
+    };
+
+    // A page with no dated entries at all still renders — it just has no
+    // timeline. Every list is empty and the wrapper collapses to its padding.
+    if (!input.length) {
+      return {
+        totalPx: PAD * 2, showGrid, years: [], bars: [], marks: [], skips: [],
+        legend: [], hasFolds: false, geoItems: [], ...emptyLanes(),
+        wrapW: narrow ? '100%' : '840px',
+        axisLeft: narrow ? '1px' : '50%', axisML: narrow ? '0' : '-1px',
+        yearLeft: narrow ? '0px' : '50%',
+        yearTf: narrow ? 'translate(0,-50%)' : 'translate(-50%,-50%)',
+        gridW: narrow ? (EDU_CARD_LEFT - 8) + 'px' : '100%',
+      };
+    }
+
+    const ranges = input.map(rangeOf);
+    const earliest = Math.min(...ranges.map(r => r[0]));
+    const latest = Math.max(...ranges.map(r => r[1]));
+
+    // The axis floor is the round year below the earliest entry, so that year's
+    // gridline can sit at its true position. Without it, posOf clamps everything
+    // at or below the first entry to the same pixel and the floor's tick lands on
+    // top of the first entry's.
+    const AXIS_FLOOR = Math.floor(earliest);
+
+    const within = (list, a, b) =>
+      list.some(r => a >= r[0] - 1e-9 && b <= r[1] + 1e-9);
+    const stretchRanges = input.filter(e => e.stretch).map(rangeOf);
+    // Time an entry occupies is never folded — a "time folded" marker inside an
+    // entry would be claiming that entry's own duration was dead time. This is
+    // what the date-literal lycée guard actually encoded, and it generalises: any
+    // entry longer than MAXGAP with no other entry's date inside it would
+    // otherwise fold itself away.
+    const noFoldAt = new Set(
+      input.filter(e => e.noFoldBefore).map(e => rangeOf(e)[0]));
+
+    const stops = Array.from(new Set(
+      [AXIS_FLOOR].concat(ranges.flatMap(r => [r[0], r[1]]))
+    )).sort((x, z) => x - z);
     const nodes = [{ d: stops[0], p: 0 }];
     const rawSkips = [];
     let acc = 0;
     for (let i = 1; i < stops.length; i++) {
       const a = stops[i - 1], b = stops[i], span = b - a;
-      // the Product Data Scientist stretch (2020.5–2022.67) and everything after
-      // it run at 1.3x so the globe travel reads smoothly
-      const stretched = (a >= 2020.4 && b <= 2022.75) || a >= 2022.6;
-      // the lycée years (2010.67–2013.5) stay at plain scale but are never
-      // folded, so the year ticks back to 2010 all stay visible
-      const noFold = stretched || (a >= 2010.6 && b <= 2013.55);
+      const stretched = within(stretchRanges, a, b);
+      const noFold = stretched || within(ranges, a, b) || noFoldAt.has(b);
       if (span > MAXGAP && !noFold) {
-        const h = SCALE * 1.05 + SKIPPX;
         rawSkips.push({ a, b, span });
-        acc += h;
+        acc += SCALE * 1.05 + SKIPPX;
       } else {
         acc += span * SCALE * (stretched ? 1.3 : 1);
       }
@@ -202,100 +306,40 @@
       midPx: +(((y(a) + y(b)) / 2)).toFixed(1),
     });
 
-    const fold = (yrs) => {
-      const m = Math.round(yrs * 12), Y = Math.floor(m / 12), M = m % 12;
-      let out = Y + " " + (Y === 1 ? L.tl.yr1 : L.tl.yrN);
-      if (M) out += " " + M + " " + (M === 1 ? L.tl.mo1 : L.tl.moN);
-      return out;
-    };
     const skips = rawSkips.map(s => ({
       topPx: y(s.b), hPx: +(posOf(s.b) - posOf(s.a)).toFixed(1), label: fold(s.span),
     }));
 
-    const meta = (from, to) => {
-      const M = L.tl.months;
-      const a = M[from[1] - 1] + " " + from[0];
-      // a one-month entry reads as a single date, not as a range or as open-ended
-      if (to && to[0] === from[0] && to[1] === from[1]) return a;
-      const b = to ? M[to[1] - 1] + " " + to[0] : L.tl.present;
-      return a + " – " + b;
-    };
-
-    const eduBase = [
-      { logoId: "logo-lma", logoSrc: "assets/lycee-militaire-aix-logo.png", showLogo: true, color: teal0, barLeft: EDU_C0,
-        from: [2010, 9], to: [2013, 6], cities: [CITY.aix], ...seg(2010.67, 2013.5) },
-      { logoId: "logo-ginette", logoSrc: "assets/sainte-genevieve-logo.png", showLogo: true, color: teal0, barLeft: EDU_C0,
-        from: [2013, 9], to: [2015, 6], cities: [CITY.versailles], ...seg(2013.67, 2015.5) },
-      { logoId: "logo-centrale", logoSrc: "assets/centralesupelec-logo.svg", showLogo: true, color: teal0, barLeft: EDU_C0,
-        from: [2015, 9], to: [2020, 6], cities: [CITY.saclay], nudge: 140, ...seg(2015.67, 2020.5) },
-      { logoId: "logo-upv", logoSrc: "assets/upv-logo.png", showLogo: true, color: teal1, barLeft: EDU_C1,
-        from: [2018, 9], to: [2020, 6], cities: [CITY.valencia], ...seg(2018.67, 2020.5) },
-    ];
-    const edu = eduBase.map((e, i) => ({
-      ...e, ...L.edu[i], meta: meta(e.from, e.to), cardLeft: EDU_CARD_LEFT, cardW: CARD_W,
-      ...leftColText, bw: BW, ck: 'edu-' + i, gap: gapFor('edu-' + i, EDU_GAP), i,
-      // in one column the CentraleSupélec card no longer has to dodge UPV's
-      nudge: narrow ? 0 : e.nudge,
-    }));
-
-    const g1 = "oklch(0.75 0.05 150)", g2 = "oklch(0.71 0.09 152)", g3 = "oklch(0.62 0.12 150)", g4 = "oklch(0.53 0.13 150)";
-    const expBase = [
-      { logoId: "logo-selectra", logoSrc: "assets/selectra-logo.png", showLogo: true, color: g1, barLeft: EXP_L,
-        from: [2018, 1], to: [2018, 6], cities: [CITY.madrid], ...seg(2018.0, 2018.5) },
-      { logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg", showLogo: true, color: g2, barLeft: EXP_L,
-        from: [2020, 1], to: [2020, 7], cities: [CITY.valencia], ...seg(2020.0, 2020.5) },
-      // two cities in one entry, newest first, each with the slice of the entry
-      // it actually covers: Querétaro Jul 2020 - Aug 2022, London the tail
-      { logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg", showLogo: true, color: g3, barLeft: EXP_L,
-        from: [2020, 7], to: [2022, 9], range: [2020.5, 2022.67],
-        cities: [{ ...CITY.london, r: [2022.583, 2022.667] }, { ...CITY.queretaro, r: [2020.5, 2022.583] }],
-        ...seg(2020.5, 2022.67) },
-      { logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg", showLogo: true, color: g4, barLeft: EXP_L,
-        from: [2022, 9], to: null, cities: [CITY.valencia], ...seg(2022.67, 2026.55) },
-    ];
-    const exp = expBase.map((e, i) => ({
-      ...e, ...L.exp[i], meta: meta(e.from, e.to), cardLeft: EXP_CARD_LEFT, cardW: CARD_W,
-      ...LEFT_TEXT, bw: BW, ck: 'exp-' + i, gap: gapFor('exp-' + i, EXP_GAP), i,
-    }));
-
-    // Volunteering shares the right-hand column with Experience — nothing else
-    // sits there in 2016-2017 — but carries its own amber and its own legend.
-    const amber = "oklch(0.72 0.14 62)";
-    const volBase = [
-      { color: amber, barLeft: EXP_L,
-        from: [2016, 7], to: [2016, 8], cities: [CITY.toamasina], ...seg(2016.5, 2016.667) },
-      { color: amber, barLeft: EXP_L,
-        from: [2017, 2], to: [2017, 2], cities: [CITY.boulajoul], ...seg(2017.083, 2017.167) },
-    ];
-    const vol = volBase.map((e, i) => ({
-      ...e, ...L.vol[i], meta: meta(e.from, e.to), cardLeft: EXP_CARD_LEFT, cardW: CARD_W,
-      ...LEFT_TEXT, bw: BW, ck: 'vol-' + i, gap: gapFor('vol-' + i, VOL_GAP), i,
-    }));
-
-    // The four Work-section projects, each at the half-year it was built in.
-    // That order is the projects' own — it doesn't track the Work section's card
-    // order and it leaves a gap in H2 2024 — so every slot names its project by
-    // key. Copy still comes from the Work cards (L.projects), which stay the
-    // single source of truth for titles; only dates and assets live here.
-    const violet = "oklch(0.58 0.15 300)";
-    const projBase = [
-      { key: "iro", from: [2024, 1], to: [2024, 6], ...seg(2024.0, 2024.5) },
-      { key: "platform", from: [2025, 1], to: [2025, 6], ...seg(2025.0, 2025.5) },
-      { key: "targets", from: [2025, 7], to: [2025, 12], ...seg(2025.5, 2026.0) },
-      { key: "regintel", from: [2026, 1], to: [2026, 6], ...seg(2026.0, 2026.5) },
-    ];
-    const proj = projBase.map((p, i) => {
-      const at = projectIndex(p.key);
-      return {
-        ...p, title: L.projects[at].title, meta: meta(p.from, p.to),
-        ...logoFields(PROJECTS[at]),
-        workHref: sectionHref(ctx.lang, 'projects', { p: p.key }),
-        onWorkLink: (e) => ctx.goTo(e, 'projects', { p: p.key }),
-        color: violet, barLeft: PROJ_L, cardLeft: PROJ_CARD_LEFT, cardW: CARD_W,
-        ...leftColText, ck: 'proj-' + i, gap: gapFor('proj-' + i, PROJ_GAP), i,
-        // H1 and H2 2025 are adjacent, so inset each bar to leave a visible seam
-        topPx: +(p.topPx + 2).toFixed(1), hPx: +(p.hPx - 4).toFixed(1),
-      };
+    // Entries in, laid out lane by lane. Input order within a lane is preserved,
+    // so `i` — which drives the reveal animation's stagger — matches the order
+    // the caller listed them in.
+    const lanes = {};
+    LANE_ORDER.forEach(k => {
+      const cfg = LANES[k];
+      lanes[k] = input.filter(e => e.kind === k).map((e, i) => {
+        const [a, b] = rangeOf(e);
+        const s = seg(a, b);
+        const ck = cfg.ck + '-' + i;
+        const out = {
+          ...e,
+          range: [a, b],
+          meta: e.meta ?? meta(e.from, e.to),
+          color: e.color || cfg.defaultColor,
+          barLeft: cfg.barCols[Math.min(e.sublane || 0, cfg.barCols.length - 1)],
+          cardLeft: cfg.cardLeft, cardW: CARD_W, bw: cfg.bw,
+          ...cfg.text,
+          ck, gap: gapFor(ck, cfg.gap), i,
+          cities: e.cities || [],
+          // in one column a card no longer has to dodge one in another lane
+          nudge: narrow ? 0 : e.nudge,
+          ...s,
+        };
+        if (cfg.inset) {
+          out.topPx = +(s.topPx + 2).toFixed(1);
+          out.hPx = +(s.hPx - 4).toFixed(1);
+        }
+        return out;
+      });
     });
 
     // Cards are placed at their entry's midpoint, then pushed down where they
@@ -312,12 +356,13 @@
     };
     // Education and Projects share the left-hand column, Experience and
     // Volunteering the right, so each side lays out as one group and cards from
-    // different categories can't land on top of each other.
-    const leftCol = edu.concat(proj);
-    const rightCol = exp.concat(vol);
-    // every place-bearing entry, in no particular order — a project carries no
-    // city of its own, so it stays out of the globe's waypoint list
-    const entries = edu.concat(rightCol);
+    // different lanes can't land on top of each other.
+    const inColumn = (side) =>
+      LANE_ORDER.filter(k => LANES[k].column === side).flatMap(k => lanes[k]);
+    const leftCol = inColumn('left'), rightCol = inColumn('right');
+    // Lanes that draw a bar and a mark on the axis. A project's slim bar is drawn
+    // from its own list instead, and carries no mark.
+    const marked = LANE_ORDER.filter(k => LANES[k].mark).flatMap(k => lanes[k]);
 
     // A leader is one 1px div rotated about its left end, which is what lets it
     // slope. It always runs between the same two points: the edge of the bar
@@ -337,35 +382,39 @@
       // a long diagonal hairline reads much fainter than a short flat one
       e.leaderCol = Math.abs(dy) > 6 ? sloped : flat;
     };
-    const HAIR = 'oklch(0.86 0.02 150)', HAIR_SLOPE = 'oklch(0.78 0.03 150)';
-    const PHAIR = 'oklch(0.86 0.03 300)', PHAIR_SLOPE = 'oklch(0.76 0.07 300)';
+    // A card to the bar's right is reached from the bar's right edge; a card to
+    // its left is reached by running backwards from clear of that column's cards.
+    const pointRight = (e, cfg) =>
+      leader(e, e.barLeft + cfg.bw, cfg.cardLeft - 2, cfg.hair, cfg.hairSlope);
+    const pointLeft = (e, cfg) =>
+      leader(e, e.barLeft, LEFT_LEADER_X, cfg.hair, cfg.hairSlope);
 
     if (narrow) {
       // one column: every card competes with every other for vertical room, and
       // every leader points rightward out of its lane
       spread(leftCol.concat(rightCol));
-      edu.concat(rightCol).forEach(e => leader(e, e.barLeft + BW, EDU_CARD_LEFT - 2, HAIR, HAIR_SLOPE));
-      proj.forEach(p => leader(p, PROJ_L + PROJ_BW, PROJ_CARD_LEFT - 2, PHAIR, PHAIR_SLOPE));
+      LANE_ORDER.forEach(k => lanes[k].forEach(e => pointRight(e, LANES[k])));
     } else {
       // two columns: the left-hand ones point back leftward to their own cards
       spread(leftCol);
       spread(rightCol);
-      edu.forEach(e => leader(e, e.barLeft, LEFT_LEADER_X, HAIR, HAIR_SLOPE));
-      rightCol.forEach(e => leader(e, EXP_L + BW, EXP_CARD_LEFT - 2, HAIR, HAIR_SLOPE));
-      proj.forEach(p => leader(p, PROJ_L, LEFT_LEADER_X, PHAIR, PHAIR_SLOPE));
+      LANE_ORDER.forEach(k => {
+        const cfg = LANES[k];
+        lanes[k].forEach(e => cfg.column === 'left' ? pointLeft(e, cfg) : pointRight(e, cfg));
+      });
     }
 
     // Where each of an entry's cities sits inside the entry's slice of globe
-    // scroll, newest first. Entries with no declared sub-ranges keep the old
-    // even split. A city whose real sub-range is a sliver of the entry would
-    // flash past unreadably, so every city is floored at MIN_CITY_SHARE and the
-    // deficit is billed to the cities that have room.
+    // scroll, newest first. Entries with no declared sub-ranges keep the even
+    // split. A city whose real sub-range is a sliver of the entry would flash
+    // past unreadably, so every city is floored at MIN_CITY_SHARE and the deficit
+    // is billed to the cities that have room.
     const MIN_CITY_SHARE = 0.25;
     const cityOffsets = (e) => {
       const n = e.cities.length;
       if (!e.range || n < 2 || e.cities.some(c => !c.r)) return e.cities.map((_, k) => k / n);
-      const total = e.range[1] - e.range[0] || 1;
-      let shares = e.cities.map(c => Math.max(0, (c.r[1] - c.r[0]) / total));
+      const span = e.range[1] - e.range[0] || 1;
+      let shares = e.cities.map(c => Math.max(0, (c.r[1] - c.r[0]) / span));
       const sum = shares.reduce((a, b) => a + b, 0) || 1;
       shares = shares.map(s => s / sum);
       const deficit = shares.reduce((d, s) => d + Math.max(0, MIN_CITY_SHARE - s), 0);
@@ -377,21 +426,39 @@
       return shares.map(s => { const o = at; at += s; return o; });
     };
 
-    // visual order, newest at top → globe waypoint order
-    const all = entries.slice().sort((a, b) => a.cardY - b.cardY);
-    all.forEach((e, k) => { e.geoI = k; });
-    const geoItems = all.map(e => ({ cities: e.cities, cityOffs: cityOffsets(e) }));
+    // visual order, newest at top → globe waypoint order. An entry with no
+    // resolvable place contributes no waypoint and keeps its place on the
+    // timeline, which is how projects have always behaved.
+    const placed = marked.slice().sort((a, b) => a.cardY - b.cardY);
+    placed.forEach((e, k) => { e.geoI = k; });
+    const geoItems = placed
+      .filter(e => e.cities.length)
+      .map(e => ({ cities: e.cities, cityOffs: cityOffsets(e) }));
 
-    const marks = entries.map(e => ({ topPx: e.topPx, leftPx: e.barLeft + BW / 2, color: e.color }));
+    const marks = marked.map(e => ({
+      topPx: e.topPx, leftPx: e.barLeft + e.bw / 2, color: e.color,
+    }));
+
+    // A lane with no entries contributes no legend item: an empty legend
+    // describing an absent lane is a bug.
+    const legend = LANE_ORDER.filter(k => lanes[k].length).map(k => ({
+      color: LANE_DEFS[k].legendColor,
+      w: LANE_DEFS[k].legendW + 'px',
+      label: L.tl[LANE_DEFS[k].legendKey],
+    }));
 
     const inFold = (yr) => rawSkips.some(s => yr > s.a + 0.08 && yr < s.b - 0.08);
     const years = [];
-    for (let yr = AXIS_FLOOR; yr <= 2026; yr++) if (!inFold(yr)) years.push({ label: String(yr), topPx: y(yr) });
+    // the top tick follows the latest entry rather than being a literal
+    for (let yr = AXIS_FLOOR; yr <= Math.floor(latest); yr++) {
+      if (!inFold(yr)) years.push({ label: String(yr), topPx: y(yr) });
+    }
 
-    const lowest = Math.max(y(stops[0]), ...entries.concat(proj).map(e => e.cardY));
-    // every category's bar is drawn the same way, so they render from one list
-    return {
-      totalPx: +(lowest + 110).toFixed(1), showGrid, years, bars: entries, edu, exp, vol, proj, marks, skips,
+    const all = LANE_ORDER.flatMap(k => lanes[k]);
+    const lowest = Math.max(y(stops[0]), ...all.map(e => e.cardY));
+    const out = {
+      totalPx: +(lowest + 110).toFixed(1), showGrid, years,
+      bars: marked, marks, skips, legend,
       hasFolds: skips.length > 0,
       // geometry the markup can't derive on its own
       wrapW: narrow ? '100%' : '840px',
@@ -403,6 +470,95 @@
       // the globe's waypoints, ordered by the visual position `spread` settled on
       geoItems,
     };
+    // one list per lane, under the name the markup loops over
+    LANE_ORDER.forEach(k => { out[LANE_DEFS[k].ck] = lanes[k]; });
+    return out;
+  }
+
+  // The author's own history, as data fed to the same builder an imported profile
+  // goes through — not a second code path. Language-invariant only: the copy each
+  // card renders is merged in from the i18n block by `authorEntries` below.
+  //
+  // The `range` values are the hand-tuned fractional years the page was laid out
+  // against, kept explicit so they survive to the decimal. `stretch` and
+  // `noFoldBefore` are what used to be date-literal conditions inside the
+  // builder.
+  const CITY = {
+    valencia: { n: 'València', c: [-0.3763, 39.4699] },
+    madrid: { n: 'Madrid', c: [-3.7038, 40.4168] },
+    london: { n: 'London', c: [-0.1276, 51.5072] },
+    queretaro: { n: 'Querétaro', c: [-100.3899, 20.5888] },
+    saclay: { n: 'Paris-Saclay', c: [2.1657, 48.7100] },
+    versailles: { n: 'Versailles', c: [2.1301, 48.8014] },
+    aix: { n: 'Aix-en-Provence', c: [5.4474, 43.5297] },
+    toamasina: { n: 'Toamasina', c: [49.4023, -18.1492] },
+    boulajoul: { n: 'Boulajoul', c: [-4.9625, 32.8811] },
+  };
+
+  const AUTHOR_ENTRIES = [
+    { kind: 'education', logoId: "logo-lma", logoSrc: "assets/lycee-militaire-aix-logo.png",
+      showLogo: true, color: TEAL_0, from: [2010, 9], to: [2013, 6],
+      range: [2010.67, 2013.5], cities: [CITY.aix] },
+    { kind: 'education', logoId: "logo-ginette", logoSrc: "assets/sainte-genevieve-logo.png",
+      showLogo: true, color: TEAL_0, from: [2013, 9], to: [2015, 6],
+      range: [2013.67, 2015.5], cities: [CITY.versailles] },
+    { kind: 'education', logoId: "logo-centrale", logoSrc: "assets/centralesupelec-logo.svg",
+      showLogo: true, color: TEAL_0, from: [2015, 9], to: [2020, 6],
+      range: [2015.67, 2020.5], cities: [CITY.saclay], nudge: 140 },
+    // the double degree overlaps the engineering school, so it takes the second
+    // education bar column
+    { kind: 'education', logoId: "logo-upv", logoSrc: "assets/upv-logo.png",
+      showLogo: true, color: TEAL_1, sublane: 1, from: [2018, 9], to: [2020, 6],
+      range: [2018.67, 2020.5], cities: [CITY.valencia] },
+
+    { kind: 'experience', logoId: "logo-selectra", logoSrc: "assets/selectra-logo.png",
+      showLogo: true, color: GREEN_1, from: [2018, 1], to: [2018, 6],
+      range: [2018.0, 2018.5], cities: [CITY.madrid] },
+    { kind: 'experience', logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg",
+      showLogo: true, color: GREEN_2, from: [2020, 1], to: [2020, 7],
+      range: [2020.0, 2020.5], cities: [CITY.valencia] },
+    // two cities in one entry, newest first, each with the slice of the entry it
+    // actually covers: Querétaro Jul 2020 - Aug 2022, London the tail. Stretched
+    // so that globe travel reads smoothly rather than flicking across an ocean.
+    { kind: 'experience', logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg",
+      showLogo: true, color: GREEN_3, stretch: true,
+      from: [2020, 7], to: [2022, 9], range: [2020.5, 2022.67],
+      cities: [{ ...CITY.london, r: [2022.583, 2022.667] }, { ...CITY.queretaro, r: [2020.5, 2022.583] }] },
+    { kind: 'experience', logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg",
+      showLogo: true, color: GREEN_4, stretch: true,
+      from: [2022, 9], to: null, range: [2022.67, 2026.55], cities: [CITY.valencia] },
+
+    // the 4L Trophy is a single event: it spans its month so the bar reads as a
+    // pill rather than collapsing to zero height
+    { kind: 'volunteering', color: AMBER, from: [2016, 7], to: [2016, 8],
+      range: [2016.5, 2016.667], cities: [CITY.toamasina] },
+    { kind: 'volunteering', color: AMBER, from: [2017, 2], to: [2017, 2],
+      range: [2017.083, 2017.167], cities: [CITY.boulajoul] },
+
+    // Each project at the half-year it was built in. This order is the projects'
+    // own — it doesn't track the Work section's card order — so every entry names
+    // its project by key and the copy is joined on that.
+    { kind: 'project', key: "iro", from: [2024, 1], to: [2024, 6], range: [2024.0, 2024.5] },
+    { kind: 'project', key: "platform", from: [2025, 1], to: [2025, 6], range: [2025.0, 2025.5] },
+    { kind: 'project', key: "targets", from: [2025, 7], to: [2025, 12], range: [2025.5, 2026.0] },
+    { kind: 'project', key: "regintel", from: [2026, 1], to: [2026, 6], range: [2026.0, 2026.5] },
+  ];
+
+  // The author's entries with their localized copy merged in. The i18n blocks
+  // carry one list per lane, index-parallel to the entries above; projects join
+  // on their key instead, because the Work section's card order is its own.
+  function authorEntries(L, ctx) {
+    const at = { education: 0, experience: 0, volunteering: 0 };
+    const listFor = { education: 'edu', experience: 'exp', volunteering: 'vol' };
+    return AUTHOR_ENTRIES.map(e => {
+      if (e.kind !== 'project') return { ...e, ...L[listFor[e.kind]][at[e.kind]++] };
+      const i = projectIndex(e.key);
+      return {
+        ...e, title: L.projects[i].title, ...logoFields(PROJECTS[i]),
+        workHref: sectionHref(ctx.lang, 'projects', { p: e.key }),
+        onWorkLink: (ev) => ctx.goTo(ev, 'projects', { p: e.key }),
+      };
+    });
   }
 
   const FLAG = {
@@ -470,8 +626,9 @@
     }));
 
     const tl = buildTimeline({
+      entries: authorEntries(t, { lang: code, goTo: ctx.goTo }),
       vw: ctx.vw, yearScale: ctx.yearScale, showGrid: ctx.showGrid,
-      cardH: ctx.cardH, lang: code, goTo: ctx.goTo,
+      cardH: ctx.cardH,
     }, t);
 
     // Shareable permalinks for the nav bar and each section's own header —
@@ -866,9 +1023,11 @@
 
       buildTimeline(L) {
         return buildTimeline({
+          entries: authorEntries(L, {
+            lang: this.lang(), goTo: (e, id, extra) => this.goTo(e, id, extra),
+          }),
           vw: this.viewportW(), yearScale: this.props.yearScale,
           showGrid: this.props.showGrid, cardH: this.state.cardH,
-          lang: this.lang(), goTo: (e, id, extra) => this.goTo(e, id, extra),
         }, L);
       }
 
@@ -905,6 +1064,7 @@
   g.CV_LOGIC = {
     NARROW_PX, PHONE_PX, PROJECTS,
     projectIndex, logoFields, sectionHref, pickLang,
+    LANE_ORDER, AUTHOR_ENTRIES, authorEntries,
     buildTimeline, renderVals, flagStyle, makeComponent,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

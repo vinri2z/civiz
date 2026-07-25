@@ -8,3 +8,5 @@ out/
 .playwright-mcp/
 fp-*.txt
 .playwright-mcp/
+base*.txt
+mine*.txt
