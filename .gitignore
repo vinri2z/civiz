@@ -10,3 +10,4 @@ fp-*.txt
 .playwright-mcp/
 base*.txt
 mine*.txt
+*.png

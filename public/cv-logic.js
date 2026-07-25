@@ -588,6 +588,15 @@
     github: "https://github.com/vinri2z",
   };
 
+  // The author's own hero. These are template values rather than literals in the
+  // markup so that one template can also draw somebody else — the `/` page still
+  // gets its content from here and the i18n blocks, not from a profile document.
+  const AUTHOR_IDENTITY = {
+    fullName: "Vincent Rizzo",
+    nameLine1: "Vincent", nameLine2: "Rizzo",
+    stat: "6+",
+  };
+
   // ctx: { strings, stateLang, propsLang, expanded, langOpen, vw, yearScale,
   //        showGrid, cardH, toggle, setLang, goTo, onLangToggle }
   // The flat object the template renders against. `tl.geoItems` is the globe's
@@ -646,6 +655,11 @@
 
     return {
       profile, t, projects, tl, langs, curFlag: flagStyle(code),
+      identity: AUTHOR_IDENTITY,
+      showGlobe: ctx.showGlobe ?? true,
+      // the globe's pill before the first frame runs; naming a literal city here
+      // would put it in every page the template ever draws
+      firstPlaceName: tl.geoItems[0]?.cities[0]?.n || '',
       toolkit: t.toolkit,
       languages: t.languages,
       beyond: t.beyond,
@@ -1045,7 +1059,8 @@
           stateLang: this.state.lang, propsLang: this.props.lang,
           expanded: this.state.expanded, langOpen: this.state.langOpen,
           vw: this.viewportW(), yearScale: this.props.yearScale,
-          showGrid: this.props.showGrid, cardH: this.state.cardH,
+          showGrid: this.props.showGrid, showGlobe: this.props.showGlobe,
+          cardH: this.state.cardH,
           toggle: (i) => this.toggle(i),
           setLang: (c) => this.setLang(c),
           goTo: (e, id, extra) => this.goTo(e, id, extra),

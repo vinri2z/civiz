@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "_comment": "A fictional profile, deliberately nothing like the author's: a longer career starting in the nineties, a folded gap, no volunteering lane, three projects, one role spanning two cities by sub-range, one role with no place at all, and one hidden entry.",
+  "identity": {
+    "name": "Marisol Okonkwo-Reyes",
+    "headline": "Coastal Hydrologist · Flood Risk Modelling",
+    "tag": "Climate adaptation",
+    "location": "Porto, Portugal",
+    "pronouns": "She/Her",
+    "stat": "24+",
+    "statLabel": "years modelling water",
+    "summary": "Hydrologist with twenty-four years turning tide gauges, rainfall radar and bathymetry into flood risk somebody can plan around. I build the whole chain: the hydraulic model, the calibration against real gauge records, and the maps a city council will actually act on.",
+    "about": "I work on the unglamorous half of climate adaptation — the part where a model has to survive contact with a drainage network nobody has surveyed since 1970. Every number I publish carries its uncertainty band, because a flood map without one gets read as a promise.",
+    "aboutLead": "Water does not ",
+    "aboutAccent": "negotiate",
+    "aboutTail": ".",
+    "contact": {
+      "h1": "Modelling water where",
+      "h2": "it is not supposed to go?",
+      "p": "I'd like to hear about it. I'm based in Porto and work across the Atlantic coast.",
+      "footer": "© 2026 Marisol Okonkwo-Reyes · Porto, Portugal"
+    },
+    "links": {
+      "email": "marisol@example.org",
+      "linkedin": "https://www.linkedin.com/in/example-hydrologist/",
+      "github": "https://github.com/example-hydrologist"
+    }
+  },
+  "entries": [
+    {
+      "kind": "education",
+      "title": "BSc, Civil Engineering",
+      "org": "Universidade do Porto",
+      "start": { "y": 1996, "m": 9 },
+      "end": { "y": 2000, "m": 7 },
+      "places": [{ "name": "Porto", "coords": [-8.6291, 41.1579] }]
+    },
+    {
+      "kind": "education",
+      "title": "PhD, Coastal Hydrodynamics",
+      "org": "Delft University of Technology",
+      "start": { "y": 2000, "m": 9 },
+      "end": { "y": 2004, "m": 6 },
+      "places": [{ "name": "Delft", "coords": [4.357, 52.0116] }]
+    },
+    {
+      "kind": "experience",
+      "title": "Research Hydrologist",
+      "org": "Deltares",
+      "note": "Calibrated estuary models against forty years of gauge records for the Dutch coastal defence programme.",
+      "start": { "y": 2004, "m": 9 },
+      "end": { "y": 2011, "m": 3 },
+      "places": [{ "name": "Delft", "coords": [4.357, 52.0116] }]
+    },
+    {
+      "kind": "experience",
+      "title": "Senior Flood Risk Modeller",
+      "org": "Atlantic Basin Authority",
+      "note": "Two postings in one role: the Lisbon estuary programme, then the Recife drainage retrofit.",
+      "start": { "y": 2011, "m": 4 },
+      "end": { "y": 2019, "m": 2 },
+      "places": [
+        {
+          "name": "Recife",
+          "coords": [-34.8811, -8.0539],
+          "range": { "start": { "y": 2017, "m": 1 }, "end": { "y": 2019, "m": 2 } }
+        },
+        {
+          "name": "Lisbon",
+          "coords": [-9.1393, 38.7223],
+          "range": { "start": { "y": 2011, "m": 4 }, "end": { "y": 2016, "m": 12 } }
+        }
+      ]
+    },
+    {
+      "kind": "experience",
+      "title": "Independent Consultant",
+      "org": "Self-employed",
+      "note": "Fully remote across eleven countries; no office worth putting on a map.",
+      "start": { "y": 2019, "m": 3 },
+      "end": { "y": 2022, "m": 8 },
+      "places": []
+    },
+    {
+      "kind": "experience",
+      "title": "Principal Hydrologist",
+      "org": "Foz Institute",
+      "note": "Leads the open flood-atlas programme for the Iberian Atlantic coast.",
+      "start": { "y": 2022, "m": 9 },
+      "end": null,
+      "places": [{ "name": "Porto", "coords": [-8.6291, 41.1579] }]
+    },
+    {
+      "kind": "experience",
+      "title": "Weekend Bar Work",
+      "org": "A bar in Porto",
+      "note": "Paid for the PhD. Not part of the story I want to tell.",
+      "hidden": true,
+      "start": { "y": 2001, "m": 6 },
+      "end": { "y": 2003, "m": 9 },
+      "places": [{ "name": "Porto", "coords": [-8.6291, 41.1579] }]
+    },
+    {
+      "kind": "project",
+      "key": "flood-atlas",
+      "start": { "y": 2023, "m": 1 },
+      "end": { "y": 2024, "m": 6 }
+    },
+    {
+      "kind": "project",
+      "key": "gauge-recovery",
+      "start": { "y": 2024, "m": 9 },
+      "end": { "y": 2025, "m": 8 }
+    },
+    {
+      "kind": "project",
+      "key": "drainage-twin",
+      "start": { "y": 2025, "m": 9 },
+      "end": null
+    }
+  ],
+  "work": [
+    {
+      "key": "flood-atlas",
+      "tag": "// open data",
+      "title": "An open flood atlas for the Iberian Atlantic coast",
+      "blurb": "Every stretch of coast from Bayonne to Cádiz, modelled at 5m and published with its uncertainty band rather than as a single line on a map.",
+      "stack": ["HEC-RAS", "Python", "GDAL", "PostGIS", "MapLibre"],
+      "bullets": [
+        "Calibrated against 38 tide gauges; median error 6cm at the annual maximum.",
+        "Published the uncertainty raster alongside every depth raster, because a bare depth map gets read as a promise.",
+        "Adopted by four municipal planning departments in the first year."
+      ]
+    },
+    {
+      "key": "gauge-recovery",
+      "tag": "// data rescue",
+      "title": "Rescuing sixty years of paper tide records",
+      "blurb": "Handwritten gauge sheets from 1961 onwards, scanned, read and reconciled against the modern digital record.",
+      "stack": ["Computer vision", "PyTorch", "Pandas", "Label Studio"],
+      "bullets": [
+        "Recovered 2.1 million readings that existed only on paper.",
+        "Hand-checked a stratified 2% sample rather than trusting the model's own confidence."
+      ]
+    },
+    {
+      "key": "drainage-twin",
+      "tag": "// in progress",
+      "title": "A drainage twin for a city with no drainage survey",
+      "blurb": "Inferring a storm network's topology from where the water actually goes, when nobody has the plans any more.",
+      "stack": ["SWMM", "Bayesian inference", "Stan"],
+      "bullets": [
+        "Treats the network as the unknown and the flooding as the observation."
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "group": "Modelling",
+      "items": ["HEC-RAS", "SWMM", "Delft3D", "TELEMAC", "Bayesian calibration", "Monte Carlo uncertainty"]
+    },
+    {
+      "group": "Data & code",
+      "items": ["Python", "R", "PostGIS", "GDAL", "Fortran (legacy)", "MapLibre"]
+    },
+    {
+      "group": "Field",
+      "items": ["Tide gauge installation", "ADCP survey", "Bathymetric survey"]
+    }
+  ],
+  "languages": [
+    { "name": "Portuguese", "level": "Native" },
+    { "name": "English", "level": "Fluent · C2" },
+    { "name": "Dutch", "level": "Fluent · C1" },
+    { "name": "Spanish", "level": "Conversational · B2" },
+    { "name": "Igbo", "level": "Conversational · B1" }
+  ],
+  "beyond": [
+    "Open data by default",
+    "Uncertainty published, never hidden",
+    "Field seasons with the people who use the maps",
+    "Teaching hydraulics to planners"
+  ],
+  "settings": {
+    "lang": "en",
+    "yearScale": 180,
+    "showGrid": true,
+    "showGlobe": true,
+    "now": 2026.5
+  }
+}

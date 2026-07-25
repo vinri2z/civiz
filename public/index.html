@@ -61,19 +61,23 @@
   <div id="cv-progress" style="height:100%;width:100%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,oklch(0.62 0.12 150),oklch(0.52 0.12 165));transition:transform .1s linear"></div>
 </div>
 
+<!-- The globe, off entirely when a page says so. Its waypoints come from
+     tl.geoItems; a page with no placed cities still draws it spinning. -->
+<sc-if value="{{ showGlobe }}" hint-placeholder-val="{{ true }}">
 <div id="globe-layer" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden">
   <canvas id="globe-canvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.2s ease"></canvas>
 </div>
 <div id="globe-place" style="position:fixed;left:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.06em;color:oklch(0.44 0.06 155);opacity:0;transition:opacity .6s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:oklch(0.981 0.012 138 / 0.82);backdrop-filter:blur(6px);border:1px solid oklch(0.9 0.015 150)">
   <span style="width:7px;height:7px;border-radius:50%;background:oklch(0.6 0.13 150);box-shadow:0 0 0 4px oklch(0.6 0.13 150 / 0.16)"></span>
-  <span id="globe-place-name">València</span>
+  <span id="globe-place-name">{{ firstPlaceName }}</span>
 </div>
+</sc-if>
 
 <header style="position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:blur(14px);background:oklch(0.981 0.012 138 / 0.72);border-bottom:1px solid oklch(0.9 0.012 150)">
   <nav style="max-width:1120px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px">
     <a href="#top" data-nav="top" style="font-family:'Bricolage Grotesque';font-weight:600;font-size:16px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);display:flex;align-items:center;gap:9px">
       <span style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.13 150);box-shadow:0 0 0 4px oklch(0.58 0.13 150 / 0.16)"></span>
-      Vincent Rizzo
+      {{ identity.fullName }}
     </a>
     <div style="display:flex;align-items:center;gap:22px;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em">
       <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
@@ -115,7 +119,7 @@
         {{ t.hero.loc }} · {{ t.hero.pron }}
       </div>
       <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">
-        Vincent<br>Rizzo
+        {{ identity.nameLine1 }}<br>{{ identity.nameLine2 }}
       </h1>
       <div data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:14px">
         <span style="font-family:'Bricolage Grotesque';font-weight:500;font-size:clamp(19px,2.4vw,26px);color:oklch(0.34 0.04 152)">{{ t.hero.title }}</span>
@@ -140,7 +144,7 @@
       </p>
       <p data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:680px;font-size:19px;line-height:1.65;color:oklch(0.42 0.02 150);margin-top:8px">{{ t.about.body }}</p>
       <div data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:flex;flex-wrap:wrap;gap:36px;margin-top:24px">
-        <div><div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:40px;color:oklch(0.5 0.12 150);letter-spacing:-.02em">6+</div><div style="font-family:'JetBrains Mono';font-size:12px;color:oklch(0.5 0.03 150);margin-top:2px">{{ t.about.stat }}</div></div>
+        <div><div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:40px;color:oklch(0.5 0.12 150);letter-spacing:-.02em">{{ identity.stat }}</div><div style="font-family:'JetBrains Mono';font-size:12px;color:oklch(0.5 0.03 150);margin-top:2px">{{ t.about.stat }}</div></div>
       </div>
     </div>
   </section>
