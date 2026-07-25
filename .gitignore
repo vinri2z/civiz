@@ -6,3 +6,5 @@ out/
 .omc/
 .vercel
 .playwright-mcp/
+fp-*.txt
+.playwright-mcp/

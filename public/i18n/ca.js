@@ -76,4 +76,4 @@
     ],
     beyond: ["Remote-first, equips distribuïts", "Lliurament guiat per l'avaluació", "Xerrades i tallers interns", "Mentoria i revisió de codi"],
   };
-})(window);
+})(typeof globalThis !== 'undefined' ? globalThis : window);

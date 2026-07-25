@@ -76,4 +76,4 @@
     ],
     beyond: ["Remote-first, équipes distribuées", "Livraison guidée par l'évaluation", "Conférences et ateliers internes", "Mentorat et revue de code"],
   };
-})(window);
+})(typeof globalThis !== 'undefined' ? globalThis : window);

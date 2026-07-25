@@ -76,4 +76,4 @@
     ],
     beyond: ["Remote-first, equipos distribuidos", "Entrega guiada por evaluación", "Charlas y talleres internos", "Mentoría y revisión de código"],
   };
-})(window);
+})(typeof globalThis !== 'undefined' ? globalThis : window);

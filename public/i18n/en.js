@@ -76,4 +76,4 @@
     ],
     beyond: ["Remote-first, distributed teams", "Evaluation-driven delivery", "Talks & internal workshops", "Mentoring & code review"],
   };
-})(window);
+})(typeof globalThis !== 'undefined' ? globalThis : window);
