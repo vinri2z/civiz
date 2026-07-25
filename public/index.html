@@ -53,10 +53,10 @@
       Vincent Rizzo
     </a>
     <div style="display:flex;align-items:center;gap:22px;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em">
-      <a href="#about" data-nav="about" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
-      <a href="#projects" data-nav="projects" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
-      <a href="#skills" data-nav="skills" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
-      <a href="#experience" data-nav="experience" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
+      <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
+      <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
+      <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
+      <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
       <a href="mailto:{{ profile.links.email }}" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:oklch(0.28 0.03 150);color:oklch(0.97 0.01 140);font-weight:700">{{ t.nav.contact }}</a>
       <div data-lang-menu="" style="position:relative;display:flex;align-items:center">
         <button onClick="{{ onLangToggle }}" aria-label="Language" title="Language" style="cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid oklch(0.85 0.02 150);background:oklch(0.99 0.005 140);font-family:'JetBrains Mono';font-size:12px;color:oklch(0.4 0.04 150);transition:all .2s" style-hover="border-color:oklch(0.68 0.09 150);color:oklch(0.4 0.11 150)">
@@ -110,7 +110,7 @@
 
   <!-- ABOUT -->
   <section id="about" style="max-width:1120px;margin:0 auto;padding:110px 32px;position:relative">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:34px">{{ t.about.label }}</div>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:34px"><a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" style="color:inherit">{{ t.about.label }}</a></div>
     <div style="display:grid;grid-template-columns:1fr;gap:20px">
       <p data-reveal="" data-i="0" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:400;font-size:clamp(26px,4vw,44px);line-height:1.25;letter-spacing:-.02em;color:oklch(0.28 0.03 152);text-wrap:pretty;max-width:960px">
         {{ t.about.h1 }}<span style="color:oklch(0.5 0.12 150)">{{ t.about.hAcc }}</span>{{ t.about.h2 }}
@@ -124,7 +124,7 @@
 
   <!-- WORK -->
   <section id="projects" style="max-width:1120px;margin:0 auto;padding:90px 32px;position:relative">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px">{{ t.work.label }}</div>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px"><a href="{{ hrefWork }}" onClick="{{ onNavWork }}" style="color:inherit">{{ t.work.label }}</a></div>
     <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:14px">{{ t.work.h }}</h2>
     <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:620px;font-size:17px;color:oklch(0.46 0.02 150);margin-bottom:48px">{{ t.work.p }}</p>
     <div style="display:flex;flex-direction:column;gap:22px">
@@ -155,6 +155,7 @@
           </sc-if>
           <div style="display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin-top:24px">
             <button onClick="{{ p.onToggle }}" style="cursor:pointer;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em;padding:9px 16px;border-radius:999px;border:1px solid oklch(0.55 0.1 150);background:transparent;color:oklch(0.44 0.11 150);transition:all .2s" style-hover="background:oklch(0.94 0.03 148)">{{ p.toggleLabel }}</button>
+            <a href="{{ p.timelineHref }}" onClick="{{ p.onTimelineLink }}" style="font-family:'JetBrains Mono';font-size:12.5px;color:oklch(0.5 0.11 150)">{{ t.work.timelineLink }} ↗</a>
             <sc-if value="{{ p.link }}" hint-placeholder-val="{{ false }}">
               <a href="{{ p.link }}" target="_blank" style="font-family:'JetBrains Mono';font-size:12.5px;color:oklch(0.5 0.11 150)">{{ p.linkLabel }} ↗</a>
             </sc-if>
@@ -166,7 +167,7 @@
 
   <!-- TOOLKIT + SKILLS -->
   <section id="skills" style="max-width:1120px;margin:0 auto;padding:90px 32px 40px">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px">{{ t.tk.label }}</div>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px"><a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" style="color:inherit">{{ t.tk.label }}</a></div>
     <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:52px">{{ t.tk.h }}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:44px">
       <sc-for list="{{ toolkit }}" as="grp" hint-placeholder-count="2">
@@ -216,7 +217,7 @@
 
   <!-- TIMELINE -->
   <section id="experience" style="max-width:1120px;margin:0 auto;padding:90px 32px;position:relative">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px">{{ t.tl.label }}</div>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px"><a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" style="color:inherit">{{ t.tl.label }}</a></div>
     <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:14px">{{ t.tl.h }}</h2>
     <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:660px;font-size:17px;line-height:1.6;color:oklch(0.46 0.02 150);margin-bottom:22px">{{ t.tl.p }}</p>
     <div data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:flex;gap:24px;flex-wrap:wrap;font-family:'JetBrains Mono';font-size:12px;color:oklch(0.48 0.03 150);margin-bottom:46px">
@@ -319,6 +320,7 @@
               </sc-if>
               <div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:15px;letter-spacing:-.01em;color:oklch(0.34 0.06 300);line-height:1.2;text-wrap:pretty">{{ p.title }}</div>
               <div style="font-family:'JetBrains Mono';font-size:10.5px;color:oklch(0.54 0.1 300);margin-top:4px">{{ p.meta }}</div>
+              <a href="{{ p.workHref }}" onClick="{{ p.onWorkLink }}" style="display:inline-block;font-family:'JetBrains Mono';font-size:10.5px;color:oklch(0.54 0.1 300);margin-top:4px">{{ t.tl.workLink }} ↗</a>
             </div>
           </div>
         </sc-for>
@@ -331,7 +333,7 @@
   <section id="contact" style="position:relative;padding:120px 32px 100px;overflow:hidden;margin-top:40px;border-top:1px solid oklch(0.9 0.015 150)">
     <div data-parallax="0.12" data-base-x="-50%" style="position:absolute;top:-30%;left:50%;transform:translateX(-50%);transition:transform .5s cubic-bezier(.22,.61,.36,1);width:700px;height:500px;z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,oklch(0.86 0.1 150 / 0.4),transparent 68%);filter:blur(6px);animation:floatA 18s ease-in-out infinite"></div></div>
     <div style="position:relative;z-index:2;max-width:900px;margin:0 auto;text-align:center">
-      <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:22px">{{ t.ct.label }}</div>
+      <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:22px"><a href="{{ hrefContact }}" onClick="{{ onNavContact }}" style="color:inherit">{{ t.ct.label }}</a></div>
       <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(34px,6vw,64px);line-height:1.04;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">{{ t.ct.h1 }}<br>{{ t.ct.h2 }}</h2>
       <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin:24px auto 0;max-width:520px;font-size:18px;color:oklch(0.44 0.02 150)">{{ t.ct.p }}</p>
       <div data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:38px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;font-family:'JetBrains Mono';font-size:14px">
@@ -429,6 +431,39 @@ class Component extends DCLogic {
     this.setState(s => ({ expanded: { ...s.expanded, [i]: !s.expanded[i] } }));
   }
 
+  // A section anchor that carries enough state to reopen a shared link the
+  // same way the sender saw it: current language, plus whatever else (e.g. an
+  // expanded project key) the caller passes in `extra`.
+  sectionHref(id, extra) {
+    const params = new URLSearchParams({ lang: this.lang() });
+    if (extra) Object.entries(extra).forEach(([k, v]) => { if (v) params.set(k, v); });
+    return '#' + id + '?' + params.toString();
+  }
+
+  // The fragment isn't a bare id (it carries a query string too), so the
+  // browser won't auto-scroll to it — every section link goes through here
+  // instead of relying on native anchor navigation.
+  goTo(e, id, extra) {
+    if (e) e.preventDefault();
+    history.pushState(null, '', this.sectionHref(id, extra));
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Restores a shared link's state on load: `#<section>?lang=..&p=<projectKey>`.
+  applySharedHash() {
+    const raw = location.hash.slice(1);
+    if (!raw) return;
+    const qi = raw.indexOf('?');
+    const id = qi >= 0 ? raw.slice(0, qi) : raw;
+    const params = new URLSearchParams(qi >= 0 ? raw.slice(qi + 1) : '');
+    const lang = params.get('lang');
+    if (lang && this.getStrings()[lang]) this.setLang(lang);
+    const key = params.get('p');
+    const i = key ? this.PROJECTS.findIndex(p => p.key === key) : -1;
+    if (i >= 0) this.setState(s => ({ expanded: { ...s.expanded, [i]: true } }));
+    if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }), 60);
+  }
+
   setLang(code) {
     try { localStorage.setItem('cv-lang', code); } catch (e) {}
     document.documentElement.lang = code === 'en' ? 'en-GB' : code;
@@ -499,6 +534,11 @@ class Component extends DCLogic {
 
     this._t = setTimeout(wire, 400);
     if (this.props.showGlobe ?? true) this.initGlobe();
+
+    this.applySharedHash();
+    const onHash = () => this.applySharedHash();
+    window.addEventListener('hashchange', onHash);
+    this._onHash = onHash;
   }
 
   componentWillUnmount() {
@@ -507,6 +547,7 @@ class Component extends DCLogic {
     if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
     if (this._onDoc) document.removeEventListener('click', this._onDoc);
+    if (this._onHash) window.removeEventListener('hashchange', this._onHash);
     if (this._raf) cancelAnimationFrame(this._raf);
     if (this._t) clearTimeout(this._t);
   }
@@ -861,6 +902,8 @@ class Component extends DCLogic {
       return {
         ...p, title: L.projects[at].title, meta: meta(p.from, p.to),
         ...this.logoFields(this.PROJECTS[at]),
+        workHref: this.sectionHref('projects', { p: p.key }),
+        onWorkLink: (e) => this.goTo(e, 'projects', { p: p.key }),
         color: violet, barLeft: PROJ_L, cardLeft: PROJ_CARD_LEFT, gap: PROJ_GAP, i,
         // H1 and H2 2025 are adjacent, so inset each bar to leave a visible seam
         topPx: +(p.topPx + 2).toFixed(1), hPx: +(p.hPx - 4).toFixed(1),
@@ -965,6 +1008,8 @@ class Component extends DCLogic {
         ...this.logoFields(card),
         toggleLabel: open ? t.work.hide : t.work.show,
         onToggle: () => this.toggle(i),
+        timelineHref: this.sectionHref('experience', { p: card.key }),
+        onTimelineLink: (e) => this.goTo(e, 'experience', { p: card.key }),
       };
     });
 
@@ -999,6 +1044,19 @@ class Component extends DCLogic {
 
     const tl = this.buildTimeline(t);
 
+    // Shareable permalinks for the nav bar and each section's own header —
+    // clicking either copies/navigates to a link that restores this language.
+    const hrefAbout = this.sectionHref('about');
+    const hrefWork = this.sectionHref('projects');
+    const hrefSkills = this.sectionHref('skills');
+    const hrefExperience = this.sectionHref('experience');
+    const hrefContact = this.sectionHref('contact');
+    const onNavAbout = (e) => this.goTo(e, 'about');
+    const onNavWork = (e) => this.goTo(e, 'projects');
+    const onNavSkills = (e) => this.goTo(e, 'skills');
+    const onNavExperience = (e) => this.goTo(e, 'experience');
+    const onNavContact = (e) => this.goTo(e, 'contact');
+
     return {
       profile, t, projects, tl, langs, curFlag: flagStyle(code),
       toolkit: t.toolkit,
@@ -1006,6 +1064,8 @@ class Component extends DCLogic {
       beyond: t.beyond,
       langOpen: !!this.state.langOpen,
       onLangToggle: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ langOpen: !s.langOpen })); },
+      hrefAbout, hrefWork, hrefSkills, hrefExperience, hrefContact,
+      onNavAbout, onNavWork, onNavSkills, onNavExperience, onNavContact,
     };
   }
 }
