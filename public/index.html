@@ -1049,40 +1049,40 @@ class Component extends DCLogic {
     // city of its own, so it stays out of the globe's waypoint list
     const entries = edu.concat(rightCol);
 
-    // A leader is one 1px div rotated about its left end, so it can slope: in one
-    // column a card rarely sits level with its own bar, and a horizontal stub
-    // would stop in mid-air instead of pointing at anything. It runs from the
-    // right edge of the bar, at the bar's own midpoint, to the left edge of the
-    // card, at the card's centre — wherever `spread` had to move that card to.
-    const slopedLeader = (e, fromX, toX, col) => {
+    // A leader is one 1px div rotated about its left end, which is what lets it
+    // slope. It always runs between the same two points: the edge of the bar
+    // facing the card, at the bar's own midpoint, and the edge of the card facing
+    // the bar, at the card's centre — wherever `spread` (or a nudge) had to move
+    // that card to. Both layouts use this: a card that had to be pushed off its
+    // own dates is the normal case in one column and the exception in two, but a
+    // horizontal rule drawn at the card's height would point at nothing either
+    // way. `fromX` may sit to the right of `toX` — for the left-hand column the
+    // line runs backwards, and atan2 handles that.
+    const leader = (e, fromX, toX, flat, sloped) => {
       const dx = toX - fromX, dy = e.cardY - e.midPx;
       e.leaderLeft = fromX;
       e.leaderTop = e.midPx;
       e.leaderW = +Math.sqrt(dx * dx + dy * dy).toFixed(1);
       e.leaderTf = 'rotate(' + (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(2) + 'deg)';
-      // a long diagonal hairline is much fainter than a short flat one
-      e.leaderCol = col;
-    };
-    // In the two-column layout the card is placed at its bar's midpoint unless it
-    // collided, and the leader is the plain horizontal rule it has always been.
-    const flatLeader = (e, fromX, w, col) => {
-      e.leaderLeft = fromX; e.leaderTop = e.cardY; e.leaderW = w; e.leaderTf = 'none';
-      e.leaderCol = col;
+      // a long diagonal hairline reads much fainter than a short flat one
+      e.leaderCol = Math.abs(dy) > 6 ? sloped : flat;
     };
     const HAIR = 'oklch(0.86 0.02 150)', HAIR_SLOPE = 'oklch(0.78 0.03 150)';
     const PHAIR = 'oklch(0.86 0.03 300)', PHAIR_SLOPE = 'oklch(0.76 0.07 300)';
 
     if (narrow) {
-      // one column: every card competes with every other for vertical room
+      // one column: every card competes with every other for vertical room, and
+      // every leader points rightward out of its lane
       spread(leftCol.concat(rightCol));
-      edu.concat(rightCol).forEach(e => slopedLeader(e, e.barLeft + BW, EDU_CARD_LEFT - 2, HAIR_SLOPE));
-      proj.forEach(p => slopedLeader(p, PROJ_L + PROJ_BW, PROJ_CARD_LEFT - 2, PHAIR_SLOPE));
+      edu.concat(rightCol).forEach(e => leader(e, e.barLeft + BW, EDU_CARD_LEFT - 2, HAIR, HAIR_SLOPE));
+      proj.forEach(p => leader(p, PROJ_L + PROJ_BW, PROJ_CARD_LEFT - 2, PHAIR, PHAIR_SLOPE));
     } else {
+      // two columns: the left-hand ones point back leftward to their own cards
       spread(leftCol);
       spread(rightCol);
-      edu.forEach(e => flatLeader(e, LEFT_LEADER_X, e.barLeft - LEFT_LEADER_X, HAIR));
-      rightCol.forEach(e => flatLeader(e, EXP_L + BW, EXP_CARD_LEFT - (EXP_L + BW), HAIR));
-      proj.forEach(p => flatLeader(p, LEFT_LEADER_X, PROJ_L - LEFT_LEADER_X, PHAIR));
+      edu.forEach(e => leader(e, e.barLeft, LEFT_LEADER_X, HAIR, HAIR_SLOPE));
+      rightCol.forEach(e => leader(e, EXP_L + BW, EXP_CARD_LEFT - 2, HAIR, HAIR_SLOPE));
+      proj.forEach(p => leader(p, PROJ_L, LEFT_LEADER_X, PHAIR, PHAIR_SLOPE));
     }
 
     // Where each of an entry's cities sits inside the entry's slice of globe
