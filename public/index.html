@@ -282,8 +282,8 @@
         </sc-for>
 
         <sc-for list="{{ tl.edu }}" as="e" hint-placeholder-count="3">
-          <div style="position:absolute;top:{{ e.cardY }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:oklch(0.86 0.02 150);z-index:1"></div>
-          <div data-geo-i="{{ e.geoI }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:{{ e.align }};z-index:4">
+          <div style="position:absolute;top:{{ e.leaderTop }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:{{ e.leaderCol }};transform:{{ e.leaderTf }};transform-origin:0 50%;z-index:1"></div>
+          <div data-geo-i="{{ e.geoI }}" data-card-h="{{ e.ck }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:{{ e.align }};z-index:4">
             <div data-reveal="" data-i="{{ e.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
               <sc-if value="{{ e.showLogo }}" hint-placeholder-val="{{ true }}">
                 <div style="height:40px;width:170px;margin-left:{{ e.logoML }};margin-bottom:12px;display:flex;align-items:center;justify-content:{{ e.logoJust }}">
@@ -298,8 +298,8 @@
         </sc-for>
 
         <sc-for list="{{ tl.exp }}" as="e" hint-placeholder-count="4">
-          <div style="position:absolute;top:{{ e.cardY }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:oklch(0.86 0.02 150);z-index:1"></div>
-          <div data-geo-i="{{ e.geoI }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:left;z-index:4">
+          <div style="position:absolute;top:{{ e.leaderTop }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:{{ e.leaderCol }};transform:{{ e.leaderTf }};transform-origin:0 50%;z-index:1"></div>
+          <div data-geo-i="{{ e.geoI }}" data-card-h="{{ e.ck }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:left;z-index:4">
             <div data-reveal="" data-i="{{ e.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
               <sc-if value="{{ e.showLogo }}" hint-placeholder-val="{{ true }}">
                 <div style="height:38px;width:150px;margin-bottom:11px;display:flex;align-items:center;justify-content:flex-start">
@@ -317,8 +317,8 @@
         </sc-for>
 
         <sc-for list="{{ tl.vol }}" as="e" hint-placeholder-count="2">
-          <div style="position:absolute;top:{{ e.cardY }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:oklch(0.86 0.02 150);z-index:1"></div>
-          <div data-geo-i="{{ e.geoI }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:left;z-index:4">
+          <div style="position:absolute;top:{{ e.leaderTop }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:{{ e.leaderCol }};transform:{{ e.leaderTf }};transform-origin:0 50%;z-index:1"></div>
+          <div data-geo-i="{{ e.geoI }}" data-card-h="{{ e.ck }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:left;z-index:4">
             <div data-reveal="" data-i="{{ e.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
               <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);line-height:1.15">{{ e.name }}</h3>
               <div style="font-size:14.5px;line-height:1.4;color:oklch(0.44 0.03 150);margin-top:4px;text-wrap:pretty">{{ e.sub }}</div>
@@ -328,8 +328,8 @@
         </sc-for>
 
         <sc-for list="{{ tl.proj }}" as="p" hint-placeholder-count="4">
-          <div style="position:absolute;top:{{ p.cardY }}px;left:{{ p.leaderLeft }}px;width:{{ p.leaderW }}px;height:1px;background:oklch(0.86 0.03 300);z-index:1"></div>
-          <div style="position:absolute;top:{{ p.cardY }}px;left:{{ p.cardLeft }}px;width:{{ p.cardW }}px;transform:translateY(-50%);text-align:{{ p.align }};z-index:4">
+          <div style="position:absolute;top:{{ p.leaderTop }}px;left:{{ p.leaderLeft }}px;width:{{ p.leaderW }}px;height:1px;background:{{ p.leaderCol }};transform:{{ p.leaderTf }};transform-origin:0 50%;z-index:1"></div>
+          <div data-card-h="{{ p.ck }}" style="position:absolute;top:{{ p.cardY }}px;left:{{ p.cardLeft }}px;width:{{ p.cardW }}px;transform:translateY(-50%);text-align:{{ p.align }};z-index:4">
             <div data-reveal="" data-i="{{ p.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
               <sc-if value="{{ p.showLogo }}" hint-placeholder-val="{{ false }}">
                 <div style="height:34px;width:150px;margin-left:{{ p.logoML }};margin-bottom:9px;display:flex;align-items:center;justify-content:{{ p.logoJust }}">
@@ -416,10 +416,28 @@ class Component extends DCLogic {
     langOpen: false,
     lang: (typeof localStorage !== 'undefined' && localStorage.getItem('cv-lang')) || null,
     vw: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    cardH: {},
   };
 
   viewportW() {
     return this.state.vw || 1200;
+  }
+
+  // How far apart the single-column timeline has to hold two cards is just how
+  // tall they are, which depends on the language and on how narrowly the text
+  // wraps. Rather than guess per category, measure the rendered cards and feed
+  // the heights back into the next layout pass; the constants in buildTimeline
+  // are only the fallback for the first paint.
+  measureCards() {
+    if (this._dead) return;
+    const next = {};
+    document.querySelectorAll('[data-card-h]').forEach(el => {
+      next[el.dataset.cardH] = Math.round(el.getBoundingClientRect().height);
+    });
+    const cur = this.state.cardH || {};
+    const keys = Object.keys(next);
+    const same = keys.length === Object.keys(cur).length && keys.every(k => cur[k] === next[k]);
+    if (!same) this.setState({ cardH: next });
   }
 
   // Everything about a Work-section project that doesn't get translated. Like
@@ -578,10 +596,18 @@ class Component extends DCLogic {
     this._t = setTimeout(wire, 400);
     if (this.props.showGlobe ?? true) this.initGlobe();
 
+    this.measureCards();
+
     this.applySharedHash();
     const onHash = () => this.applySharedHash();
     window.addEventListener('hashchange', onHash);
     this._onHash = onHash;
+  }
+
+  // A language switch or a resize re-wraps the cards, so their heights — and the
+  // gaps derived from them — have to be taken again.
+  componentDidUpdate() {
+    this.measureCards();
   }
 
   componentWillUnmount() {
@@ -789,7 +815,7 @@ class Component extends DCLogic {
     // Narrow runs at a coarser time scale on purpose: one column of taller,
     // wrapped cards needs more vertical room per year, or `spread` pushes cards
     // so far from their own bars that the leader lines stop meaning anything.
-    const SCALE = narrow ? Math.max(this.props.yearScale ?? 180, 215) : (this.props.yearScale ?? 180);
+    const SCALE = narrow ? Math.max(this.props.yearScale ?? 180, 270) : (this.props.yearScale ?? 180);
     const showGrid = this.props.showGrid ?? true;
     const PAD = 30, C = 420, MAXGAP = 2, SKIPPX = 46;
     const BW = narrow ? 12 : 16;
@@ -812,9 +838,24 @@ class Component extends DCLogic {
     // overlap vertically — education ends in 2020, the projects start in 2024 —
     // so they share the column instead of each needing one.
     const PROJ_BW = 8, PROJ_L = EDU_C0 + (BW - PROJ_BW) / 2, PROJ_CARD_LEFT = EDU_CARD_LEFT;
-    // each category's minimum vertical footprint, used to push colliding cards
-    // apart — narrower cards wrap into more lines, so they need more room
-    const EDU_GAP = narrow ? 214 : 196, EXP_GAP = narrow ? 226 : 172, PROJ_GAP = narrow ? 124 : 56;
+    // Each category's minimum vertical footprint, used to push colliding cards
+    // apart. Narrow cards wrap into more lines so they need more room than the
+    // two-column ones, but only just: every pixel of slack here becomes drift
+    // between a card and the bar it belongs to. Volunteering gets its own gap
+    // rather than borrowing Experience's — its cards are three short lines, and
+    // billing them for a full job card's height pushed them furthest of all.
+    const EDU_GAP = narrow ? 180 : 196;
+    const EXP_GAP = narrow ? 188 : 172;
+    const VOL_GAP = narrow ? 124 : 172;
+    const PROJ_GAP = narrow ? 116 : 56;
+    // In one column the gap is the card's measured height plus a little air, so a
+    // card is only ever pushed off its own bar by as much as its neighbour truly
+    // needs. The constants above are the first-paint fallback, before
+    // measureCards has run. The two-column layout keeps its fixed gaps: there the
+    // cards alternate sides and collisions are rare.
+    const H = this.state.cardH || {};
+    const BREATH = 18;
+    const gapFor = (ck, fallback) => (narrow && H[ck]) ? H[ck] + BREATH : fallback;
     // Cards are right-aligned against the axis only in the two-sided layout; in
     // one column everything reads left-aligned.
     const RIGHT_TEXT = { align: 'right', logoML: 'auto', logoJust: 'flex-end' };
@@ -922,7 +963,7 @@ class Component extends DCLogic {
     ];
     const edu = eduBase.map((e, i) => ({
       ...e, ...L.edu[i], meta: meta(e.from, e.to), cardLeft: EDU_CARD_LEFT, cardW: CARD_W,
-      ...leftColText, bw: BW, gap: EDU_GAP, i,
+      ...leftColText, bw: BW, ck: 'edu-' + i, gap: gapFor('edu-' + i, EDU_GAP), i,
       // in one column the CentraleSupélec card no longer has to dodge UPV's
       nudge: narrow ? 0 : e.nudge,
     }));
@@ -944,7 +985,7 @@ class Component extends DCLogic {
     ];
     const exp = expBase.map((e, i) => ({
       ...e, ...L.exp[i], meta: meta(e.from, e.to), cardLeft: EXP_CARD_LEFT, cardW: CARD_W,
-      ...LEFT_TEXT, bw: BW, gap: EXP_GAP, i,
+      ...LEFT_TEXT, bw: BW, ck: 'exp-' + i, gap: gapFor('exp-' + i, EXP_GAP), i,
     }));
 
     // Volunteering shares the right-hand column with Experience — nothing else
@@ -958,7 +999,7 @@ class Component extends DCLogic {
     ];
     const vol = volBase.map((e, i) => ({
       ...e, ...L.vol[i], meta: meta(e.from, e.to), cardLeft: EXP_CARD_LEFT, cardW: CARD_W,
-      ...LEFT_TEXT, bw: BW, gap: EXP_GAP, i,
+      ...LEFT_TEXT, bw: BW, ck: 'vol-' + i, gap: gapFor('vol-' + i, VOL_GAP), i,
     }));
 
     // The four Work-section projects, each at the half-year it was built in.
@@ -981,7 +1022,7 @@ class Component extends DCLogic {
         workHref: this.sectionHref('projects', { p: p.key }),
         onWorkLink: (e) => this.goTo(e, 'projects', { p: p.key }),
         color: violet, barLeft: PROJ_L, cardLeft: PROJ_CARD_LEFT, cardW: CARD_W,
-        ...leftColText, gap: PROJ_GAP, i,
+        ...leftColText, ck: 'proj-' + i, gap: gapFor('proj-' + i, PROJ_GAP), i,
         // H1 and H2 2025 are adjacent, so inset each bar to leave a visible seam
         topPx: +(p.topPx + 2).toFixed(1), hPx: +(p.hPx - 4).toFixed(1),
       };
@@ -1008,24 +1049,40 @@ class Component extends DCLogic {
     // city of its own, so it stays out of the globe's waypoint list
     const entries = edu.concat(rightCol);
 
+    // A leader is one 1px div rotated about its left end, so it can slope: in one
+    // column a card rarely sits level with its own bar, and a horizontal stub
+    // would stop in mid-air instead of pointing at anything. It runs from the
+    // right edge of the bar, at the bar's own midpoint, to the left edge of the
+    // card, at the card's centre — wherever `spread` had to move that card to.
+    const slopedLeader = (e, fromX, toX, col) => {
+      const dx = toX - fromX, dy = e.cardY - e.midPx;
+      e.leaderLeft = fromX;
+      e.leaderTop = e.midPx;
+      e.leaderW = +Math.sqrt(dx * dx + dy * dy).toFixed(1);
+      e.leaderTf = 'rotate(' + (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(2) + 'deg)';
+      // a long diagonal hairline is much fainter than a short flat one
+      e.leaderCol = col;
+    };
+    // In the two-column layout the card is placed at its bar's midpoint unless it
+    // collided, and the leader is the plain horizontal rule it has always been.
+    const flatLeader = (e, fromX, w, col) => {
+      e.leaderLeft = fromX; e.leaderTop = e.cardY; e.leaderW = w; e.leaderTf = 'none';
+      e.leaderCol = col;
+    };
+    const HAIR = 'oklch(0.86 0.02 150)', HAIR_SLOPE = 'oklch(0.78 0.03 150)';
+    const PHAIR = 'oklch(0.86 0.03 300)', PHAIR_SLOPE = 'oklch(0.76 0.07 300)';
+
     if (narrow) {
-      // one column: every card competes with every other for vertical room, and
-      // each leader line is a short stub from its own lane out to the column
+      // one column: every card competes with every other for vertical room
       spread(leftCol.concat(rightCol));
-      edu.concat(rightCol).forEach(e => {
-        e.leaderLeft = e.barLeft + BW;
-        e.leaderW = Math.max(2, EDU_CARD_LEFT - e.leaderLeft);
-      });
-      proj.forEach(p => {
-        p.leaderLeft = PROJ_L + PROJ_BW;
-        p.leaderW = Math.max(2, PROJ_CARD_LEFT - p.leaderLeft);
-      });
+      edu.concat(rightCol).forEach(e => slopedLeader(e, e.barLeft + BW, EDU_CARD_LEFT - 2, HAIR_SLOPE));
+      proj.forEach(p => slopedLeader(p, PROJ_L + PROJ_BW, PROJ_CARD_LEFT - 2, PHAIR_SLOPE));
     } else {
       spread(leftCol);
       spread(rightCol);
-      edu.forEach(e => { e.leaderLeft = LEFT_LEADER_X; e.leaderW = e.barLeft - LEFT_LEADER_X; });
-      rightCol.forEach(e => { e.leaderLeft = EXP_L + BW; e.leaderW = EXP_CARD_LEFT - (EXP_L + BW); });
-      proj.forEach(p => { p.leaderLeft = LEFT_LEADER_X; p.leaderW = PROJ_L - LEFT_LEADER_X; });
+      edu.forEach(e => flatLeader(e, LEFT_LEADER_X, e.barLeft - LEFT_LEADER_X, HAIR));
+      rightCol.forEach(e => flatLeader(e, EXP_L + BW, EXP_CARD_LEFT - (EXP_L + BW), HAIR));
+      proj.forEach(p => flatLeader(p, LEFT_LEADER_X, PROJ_L - LEFT_LEADER_X, PHAIR));
     }
 
     // Where each of an entry's cities sits inside the entry's slice of globe
