@@ -1,18 +1,13 @@
 {
   "name": "civiz",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
-  "description": "Vincent Rizzo resume: a professional site (Next.js) plus a scroll-driven 3D journey (/immersive)",
+  "description": "Vincent Rizzo CV: a self-contained dc-runtime page served as a Next.js static export",
   "scripts": {
-    "dev": "next dev",
+    "dev": "serve public -l 3000",
     "build": "next build",
-    "start": "next start",
-    "build:3d": "vite build --base=/immersive/ --outDir public/immersive --emptyOutDir",
-    "dev:3d": "vite",
-    "preview:3d": "vite preview",
-    "lint:ai": "node scripts/deai.mjs",
-    "lint:ai:fix": "node scripts/deai.mjs --fix"
+    "start": "serve out -l 3000"
   },
   "dependencies": {
     "next": "^15.1.6",
@@ -20,8 +15,6 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "playwright": "^1.61.1",
-    "three": "^0.160.0",
-    "vite": "^5.0.0"
+    "serve": "^14.2.4"
   }
 }
