@@ -660,12 +660,12 @@ class Component extends DCLogic {
     // One dot per glyph pixel: at rest the name is indistinguishable from set type,
     // and the only hint is the odd dot radiating away from it.
     const STEP = 1;      // sampling grid, px — one dot per CSS pixel of glyph
-    const RADIUS = 20;   // pointer blast radius, px
+    const RADIUS = 30;   // pointer blast radius, px
     // Small bite, hard shove, slow heal: the trace the cursor cuts stays open for
     // a beat or two behind it before the springs close it again.
-    const PUSH = 9;      // repulsion strength
-    const SPRING = 0.012;// pull back home
-    const DAMP = 0.94;   // velocity decay
+    const PUSH = 1;      // repulsion strength
+    const SPRING = 0.2;// pull back home
+    const DAMP = 0.8;   // velocity decay
     const EVAP_EVERY = 10000; // ms between dots that leave for good
     const EVAP_SPEED = 0.28;  // px/frame — a slow drift outwards
     const INK = 'oklch(0.22 0.02 150)';
