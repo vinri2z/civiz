@@ -109,8 +109,13 @@
         <span style="width:22px;height:1px;background:oklch(0.55 0.1 150)"></span>
         {{ t.hero.loc }} · {{ t.hero.pron }}
       </div>
-      <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">
-        Vincent<br>Rizzo
+      <!-- The name doubles as a point cloud: initNameCloud samples the rendered
+           text off-screen, turns the real glyphs transparent and draws the dots
+           on the canvas. Without JS (or with reduced motion / no fine pointer)
+           the text below stays as it is and the canvas stays empty. -->
+      <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);position:relative;font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">
+        <span data-name-ink="">Vincent<br>Rizzo</span>
+        <canvas data-name-cloud="" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas>
       </h1>
       <div data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:14px">
         <span style="font-family:'Bricolage Grotesque';font-weight:500;font-size:clamp(19px,2.4vw,26px);color:oklch(0.34 0.04 152)">{{ t.hero.title }}</span>
@@ -595,6 +600,7 @@ class Component extends DCLogic {
 
     this._t = setTimeout(wire, 400);
     if (this.props.showGlobe ?? true) this.initGlobe();
+    this.initNameCloud();
 
     this.measureCards();
 
@@ -620,7 +626,204 @@ class Component extends DCLogic {
     if (this._onDoc) document.removeEventListener('click', this._onDoc);
     if (this._onHash) window.removeEventListener('hashchange', this._onHash);
     if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._nameRaf) cancelAnimationFrame(this._nameRaf);
+    if (this._nameIo) this._nameIo.disconnect();
+    if (this._nameEvap) clearInterval(this._nameEvap);
+    if (this._nameResizeT) clearTimeout(this._nameResizeT);
+    if (this._onNameMove) window.removeEventListener('mousemove', this._onNameMove);
+    if (this._onNameLeave) window.removeEventListener('mouseout', this._onNameLeave);
+    if (this._onNameResize) window.removeEventListener('resize', this._onNameResize);
     if (this._t) clearTimeout(this._t);
+  }
+
+  // Hero name as a point cloud. The <span> keeps the real text for screen
+  // readers, search engines and copy-paste; it just goes transparent once the
+  // dots are up. Dots are sampled from an off-screen render of the same font at
+  // the same size, so they land exactly where the glyphs were. The pointer pushes
+  // every dot inside its radius outwards; a spring pulls each one back to its
+  // home pixel, which is what reforms the letters behind the cursor.
+  initNameCloud() {
+    const canvas = document.querySelector('[data-name-cloud]');
+    const ink = document.querySelector('[data-name-ink]');
+    if (!canvas || !ink || !window.requestAnimationFrame || !window.matchMedia) return;
+    if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    // Nothing to hover with on touch: leave the plain text alone.
+    if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const lines = ink.innerHTML.split(/<br\b[^>]*>/i)
+      .map(s => s.replace(/<[^>]*>/g, '').trim()).filter(Boolean);
+    if (!lines.length) return;
+
+    // One dot per glyph pixel: at rest the name is indistinguishable from set type,
+    // and the only hint is the odd dot radiating away from it.
+    const STEP = 1;      // sampling grid, px — one dot per CSS pixel of glyph
+    const RADIUS = 20;   // pointer blast radius, px
+    // Small bite, hard shove, slow heal: the trace the cursor cuts stays open for
+    // a beat or two behind it before the springs close it again.
+    const PUSH = 9;      // repulsion strength
+    const SPRING = 0.012;// pull back home
+    const DAMP = 0.94;   // velocity decay
+    const EVAP_EVERY = 10000; // ms between dots that leave for good
+    const EVAP_SPEED = 0.28;  // px/frame — a slow drift outwards
+    const INK = 'oklch(0.22 0.02 150)';
+
+    let pts = [], W = 0, H = 0, dpr = 1, dot = 2, live = true;
+    const mouse = { x: -1e5, y: -1e5, on: false };
+
+    const sample = () => {
+      const cs = getComputedStyle(ink);
+      const fs = parseFloat(cs.fontSize) || 48;
+      W = canvas.clientWidth; H = canvas.clientHeight;
+      if (!W || !H) return false;
+
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dot = STEP + 0.6; // dots overlap their grid cell, so resting glyphs look solid
+
+      const off = document.createElement('canvas');
+      off.width = Math.max(1, Math.round(W)); off.height = Math.max(1, Math.round(H));
+      const o = off.getContext('2d', { willReadFrequently: true });
+      o.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + fs + 'px ' + cs.fontFamily;
+      if ('letterSpacing' in o) o.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+      o.textBaseline = 'alphabetic';
+      o.fillStyle = '#000';
+      // line-height on the h1 is 0.98; centre each line's ink in its line box so
+      // the dots sit on the same rows as the DOM text they replace.
+      const box = fs * 0.98;
+      lines.forEach((line, i) => {
+        const m = o.measureText(line);
+        const asc = m.actualBoundingBoxAscent || fs * 0.72;
+        const desc = m.actualBoundingBoxDescent || fs * 0.2;
+        o.fillText(line, 0, i * box + (box + asc - desc) / 2);
+      });
+
+      const data = o.getImageData(0, 0, off.width, off.height).data;
+      const next = [];
+      for (let y = 0; y < off.height; y += STEP) {
+        for (let x = 0; x < off.width; x += STEP) {
+          if (data[(y * off.width + x) * 4 + 3] > 130) {
+            const hx = x + (Math.random() - 0.5) * 0.6;
+            const hy = y + (Math.random() - 0.5) * 0.6;
+            // Per-dot sensitivity, so the pushed-away dots form a loose swarm
+            // instead of one razor-thin shell where push and spring cancel out.
+            next.push({ hx: hx, hy: hy, x: hx, y: hy, vx: 0, vy: 0, k: 0.6 + Math.random() * 0.9 });
+          }
+        }
+      }
+      if (next.length < 40) return false;
+      pts = next;
+      ink.style.color = 'transparent';
+      return true;
+    };
+
+    // Roughly one dot every ten seconds cuts loose and radiates away from the
+    // middle of the name at a constant crawl — the only hint at rest that the
+    // letters are a cloud and not type. It keeps its full weight the whole way
+    // and is recycled back to its home pixel once it clears the canvas.
+    const release = () => {
+      const p = pts[(Math.random() * pts.length) | 0];
+      if (!p || p.free) return;
+      const a = Math.atan2(p.hy - H / 2, p.hx - W / 2) + (Math.random() - 0.5) * 0.7;
+      p.free = true;
+      p.vx = Math.cos(a) * EVAP_SPEED;
+      p.vy = Math.sin(a) * EVAP_SPEED;
+    };
+
+    const frame = () => {
+      this._nameRaf = 0;
+      if (this._dead) return;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = INK;
+      const half = dot / 2;
+      let busy = false;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (p.free) {
+          p.x += p.vx; p.y += p.vy;
+          // Gone from the canvas: put it back on the name, unnoticed.
+          if (p.x < -8 || p.y < -8 || p.x > W + 8 || p.y > H + 8) {
+            p.free = false; p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0;
+          } else {
+            busy = true;
+            ctx.fillRect(p.x - half, p.y - half, dot, dot);
+            continue;
+          }
+        }
+        if (mouse.on) {
+          const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+          if (d2 < RADIUS * RADIUS) {
+            const d = Math.sqrt(d2) || 0.4;
+            const f = (1 - d / RADIUS) * PUSH * p.k / d;
+            p.vx += dx * f; p.vy += dy * f;
+          }
+        }
+        p.vx = (p.vx + (p.hx - p.x) * SPRING) * DAMP;
+        p.vy = (p.vy + (p.hy - p.y) * SPRING) * DAMP;
+        p.x += p.vx; p.y += p.vy;
+        const ox = p.x - p.hx, oy = p.y - p.hy;
+        if (ox * ox + oy * oy > 0.02 || p.vx * p.vx + p.vy * p.vy > 0.02) busy = true;
+        else { p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0; }
+        ctx.fillRect(p.x - half, p.y - half, dot, dot);
+      }
+
+      // Scrolled out of view, or everything home with the pointer elsewhere:
+      // stop until something happens.
+      if (!live || (!busy && !mouse.on)) return;
+      this._nameRaf = requestAnimationFrame(frame);
+    };
+
+    const kick = () => { if (!this._nameRaf && !this._dead) this._nameRaf = requestAnimationFrame(frame); };
+
+    this._nameEvap = setInterval(() => {
+      if (this._dead || !live) return;
+      release();
+      kick();
+    }, EVAP_EVERY);
+
+    // The hero scrolls away; stop burning frames once it is out of view.
+    if (window.IntersectionObserver) {
+      const vo = new IntersectionObserver(es => {
+        live = es.some(e => e.isIntersecting);
+        if (live) kick();
+      }, { threshold: 0 });
+      vo.observe(canvas);
+      this._nameIo = vo;
+    }
+
+    if (!sample()) return;
+    frame();
+
+    const onMove = (e) => {
+      const r = canvas.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      mouse.x = x; mouse.y = y;
+      mouse.on = x > -RADIUS && y > -RADIUS && x < r.width + RADIUS && y < r.height + RADIUS;
+      kick();
+    };
+    window.addEventListener('mousemove', onMove, { passive: true });
+    this._onNameMove = onMove;
+
+    const onLeave = () => { mouse.on = false; kick(); };
+    window.addEventListener('mouseout', onLeave);
+    this._onNameLeave = onLeave;
+
+    // clamp() on the font size means every resize changes the glyphs.
+    const onResize = () => {
+      if (this._nameResizeT) clearTimeout(this._nameResizeT);
+      this._nameResizeT = setTimeout(() => { if (!this._dead && sample()) frame(); }, 160);
+    };
+    window.addEventListener('resize', onResize);
+    this._onNameResize = onResize;
+
+    // Bricolage Grotesque may still be loading; re-sample once it lands.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { if (!this._dead && sample()) frame(); });
+    }
   }
 
   // Globe locked to the timeline: the card nearest the viewport centre owns the dot.
