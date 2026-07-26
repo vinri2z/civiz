@@ -100,7 +100,7 @@
 
   <!-- HERO -->
   <section style="position:relative;min-height:100vh;display:flex;align-items:center;padding:150px 32px 90px;overflow:hidden">
-    <div data-parallax="0.16" style="position:absolute;top:-8%;right:-6%;width:620px;height:620px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,oklch(0.86 0.11 148 / 0.55),transparent 68%);filter:blur(8px);animation:floatA 16s ease-in-out infinite"></div></div>
+    <div data-parallax="0.16" style="position:absolute;top:-8%;right:-6%;width:620px;height:620px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,oklch(0.86 0.11 148 / 0.55),transparent 42%);filter:blur(8px);animation:floatA 16s ease-in-out infinite"></div></div>
     <div data-parallax="0.28" style="position:absolute;bottom:-14%;left:-8%;width:520px;height:520px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,oklch(0.83 0.09 175 / 0.5),transparent 66%);filter:blur(8px);animation:floatB 19s ease-in-out infinite"></div></div>
     <div style="position:absolute;inset:0;background-image:linear-gradient(oklch(0.5 0.05 150 / 0.05) 1px,transparent 1px),linear-gradient(90deg,oklch(0.5 0.05 150 / 0.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 30% 40%,black,transparent 72%);animation:gridpan 26s linear infinite;z-index:0"></div>
 
@@ -128,7 +128,7 @@
         <a href="{{ profile.links.github }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid oklch(0.8 0.03 150);background:oklch(0.99 0.005 140)"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.05-.02-2.06-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"></path></svg>GitHub ↗</a>
       </div>
     </div>
-    <div style="position:absolute;bottom:34px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:oklch(0.5 0.04 150);animation:bob 2.4s ease-in-out infinite;z-index:2">{{ t.hero.scroll }}</div>
+    <div data-scroll-hint="" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:oklch(0.5 0.04 150);animation:bob 2.4s ease-in-out infinite;z-index:40;transition:opacity .4s ease;pointer-events:none">{{ t.hero.scroll }}</div>
   </section>
 
   <!-- ABOUT -->
@@ -557,6 +557,10 @@ class Component extends DCLogic {
       const p = Math.min(1, Math.max(0, h.scrollTop / max));
       const bar = document.getElementById('cv-progress');
       if (bar) bar.style.transform = 'scaleX(' + p + ')';
+      // Stays stuck to the bottom of the viewport for the whole page, not just
+      // the hero, and only fades once there's nothing left below to scroll to.
+      const hint = document.querySelector('[data-scroll-hint]');
+      if (hint) hint.style.opacity = p > 0.995 ? '0' : '1';
       document.querySelectorAll('[data-parallax]').forEach(el => {
         const s = parseFloat(el.dataset.parallax) || 0.1;
         const base = el.dataset.baseX ? 'translateX(' + el.dataset.baseX + ') ' : '';
@@ -902,9 +906,11 @@ class Component extends DCLogic {
       return last.i;
     };
 
+    const HOME = [-0.3763, 39.4699]; // Valencia, Spain
+
     const target = () => {
       const pts = flat();
-      if (!pts.length) return { pt: [-0.3763, 39.4699], idx: 0, pts };
+      if (!pts.length) return { pt: HOME, idx: 0, pts };
       const s = scan();
       if (s <= pts[0].t) return { pt: pts[0].c, idx: 0, pts };
       const L = pts.length - 1;
@@ -919,7 +925,7 @@ class Component extends DCLogic {
       return { pt: pts[L].c, idx: L, pts };
     };
 
-    let cur = (this._geoItems && this._geoItems[0] ? this._geoItems[0].cities[0].c.slice() : [-0.3763, 39.4699]);
+    let cur = (this._geoItems && this._geoItems[0] ? this._geoItems[0].cities[0].c.slice() : HOME.slice());
     let lastIdx = -1, settled = 0;
     const nameEl = document.getElementById('globe-place-name');
     const placeEl = document.getElementById('globe-place');
@@ -987,7 +993,10 @@ class Component extends DCLogic {
 
         const center = [-projection.rotate()[0], -projection.rotate()[1]];
         const waypoints = pts || flat();
-        const active = pts ? waypoints[Math.max(0, Math.min(idx, waypoints.length - 1))] : null;
+        // Idle (spinning, off the timeline): no card owns the dot, so default
+        // to highlighting home instead of leaving every dot the same size.
+        const active = pts ? waypoints[Math.max(0, Math.min(idx, waypoints.length - 1))]
+          : waypoints.find(p => p.c[0] === HOME[0] && p.c[1] === HOME[1]);
         const seen = {};
         waypoints.forEach(p => {
           const key = p.c.join(',');
