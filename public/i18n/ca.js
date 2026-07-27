@@ -8,7 +8,7 @@
     nav: { about: "sobre mi", work: "treballs", skills: "aptituds", timeline: "trajectòria", contact: "contacte" },
     hero: { loc: "València, Espanya", pron: "Ell", title: "Data Scientist Sènior · Enginyer d'IA", tag: "Aplicacions LLM", email: "Correu", scroll: "DESPLAÇA", spin: "DESPLAÇA DE COSTAT PER GIRAR",
       summary: "Enginyer de machine learning i programari amb més de 6 anys convertint grans corpus de text —regulacions, informes anuals i divulgacions corporatives— en dades estructurades i consultables. Construeixo tot el camí: filtre clàssic, extractor amb LLM i l'arnès d'avaluació que el mesura." },
-    about: { label: "// ús ètic de la IA", h1: "Ús ètic de la ", hAcc: "IA", h2: ".", stat: "anys en ML i programari",
+    about: { label: "// sobre mi", h1: "Ús ètic de la ", hAcc: "IA", h2: ".", stat: "anys en ML i programari",
       body: "Treballo per treure el màxim partit als LLM on té sentit, mantenint sempre baranes de seguretat, mètriques estrictes i una persona dins el bucle." },
     tl: { label: "// experiència i formació", h: "Una sola línia", p: "Tot el que he estudiat i construït, del més recent al més antic i a escala.",
       eduLegend: "Formació", expLegend: "Experiència", volLegend: "Voluntariat", projLegend: "Projectes", foldLegend: "Temps plegat",
@@ -26,7 +26,7 @@
     ],
     vol: [
       { name: "Les Enfants du Soleil", sub: "Voluntari · ONG d'infància", place: "Toamasina, MG" },
-      { name: "4L Trophy — Les Enfants du Désert", sub: "Tripulació · ral·li estudiantil de repartiment de material escolar", place: "Boulajoul, MA" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Tripulació · ral·li estudiantil de repartiment de material escolar", place: "Boulaajoul, MA" },
     ],
     exp: [
       { role: "Becari d'automatització QA", org: "Selectra", place: "Madrid, ES", note: "Automatització de proves amb Katalon, Selenium i Groovy." },
@@ -71,8 +71,8 @@
       { group: "Enginyeria / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS (serverless)", "Postgres · S3", "Argilla (humà dins el bucle)", "OpenTelemetry", "uv · ruff"] },
     ],
     languages: [
-      { name: "Francès", level: "Natiu", flag: "🇫🇷" }, { name: "Anglès", level: "Fluid · C2", flag: "🇬🇧" },
-      { name: "Espanyol", level: "Fluid · C2", flag: "🇪🇸" }, { name: "Català", level: "Conversacional · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
+      { name: "Francès", level: "Natiu", flag: "fr" }, { name: "Anglès", level: "Fluid · C2", flag: "en" },
+      { name: "Espanyol", level: "Fluid · C2", flag: "es" }, { name: "Català", level: "Conversacional · B1", flag: "ca" },
     ],
     beyond: ["Remote-first, equips distribuïts", "Lliurament guiat per l'avaluació", "Xerrades i tallers interns", "Mentoria i revisió de codi"],
   };

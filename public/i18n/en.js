@@ -8,7 +8,7 @@
     nav: { about: "about", work: "work", skills: "skills", timeline: "timeline", contact: "contact" },
     hero: { loc: "Valencia, Spain", pron: "He/Him", title: "Senior Data Scientist · AI Engineer", tag: "LLM applications", email: "Email", scroll: "SCROLL", spin: "SCROLL SIDEWAYS TO SPIN",
       summary: "Machine-learning and software engineer with 6+ years turning large text corpora such as regulations, annual reports and corporate disclosures into structured, queryable data. I build the whole path: classical filter, LLM extractor, and the evaluation harness that measures it." },
-    about: { label: "// ethical use of AI", h1: "Ethical use of ", hAcc: "AI", h2: ".", stat: "years in ML & software",
+    about: { label: "// about", h1: "Ethical use of ", hAcc: "AI", h2: ".", stat: "years in ML & software",
       body: "I work to help us make the most out of LLMs where it applies, and keep always guardrails, strict metrics and a human in the loop." },
     tl: { label: "// experience & education", h: "One timeline", p: "Everything I've studied and built, newest first and drawn to scale.",
       eduLegend: "Education", expLegend: "Experience", volLegend: "Volunteering", projLegend: "Projects", foldLegend: "Time folded",
@@ -26,7 +26,7 @@
     ],
     vol: [
       { name: "Les Enfants du Soleil", sub: "Volunteer · children's charity", place: "Toamasina, MG" },
-      { name: "4L Trophy — Les Enfants du Désert", sub: "Crew · student rally delivering school supplies", place: "Boulajoul, MA" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Crew · student rally delivering school supplies", place: "Boulaajoul, MA" },
     ],
     exp: [
       { role: "QA Automation Intern", org: "Selectra", place: "Madrid, ES", note: "Test automation with Katalon, Selenium & Groovy." },
@@ -71,8 +71,8 @@
       { group: "Engineering / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS (serverless)", "Postgres · S3", "Argilla (human-in-the-loop)", "OpenTelemetry", "uv · ruff"] },
     ],
     languages: [
-      { name: "French", level: "Native", flag: "🇫🇷" }, { name: "English", level: "Fluent · C2", flag: "🇬🇧" },
-      { name: "Spanish", level: "Fluent · C2", flag: "🇪🇸" }, { name: "Catalan", level: "Conversational · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
+      { name: "French", level: "Native", flag: "fr" }, { name: "English", level: "Fluent · C2", flag: "en" },
+      { name: "Spanish", level: "Fluent · C2", flag: "es" }, { name: "Catalan", level: "Conversational · B1", flag: "ca" },
     ],
     beyond: ["Remote-first, distributed teams", "Evaluation-driven delivery", "Talks & internal workshops", "Mentoring & code review"],
   };

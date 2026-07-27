@@ -8,7 +8,7 @@
     nav: { about: "sobre mí", work: "trabajo", skills: "aptitudes", timeline: "histórico", contact: "contacto" },
     hero: { loc: "Valencia, España", pron: "Él", title: "Data Scientist Senior · Ingeniero de IA", tag: "Aplicaciones LLM", email: "Correo", scroll: "DESLIZA", spin: "DESLIZA PARA GIRAR",
       summary: "Ingeniero de machine learning y software con más de 6 años convirtiendo grandes corpus de texto —regulaciones, informes anuales y divulgaciones corporativas— en datos estructurados y consultables. Construyo el camino completo: filtro clásico, extractor con LLM y el arnés de evaluación que lo mide." },
-    about: { label: "// uso ético de la IA", h1: "Uso ético de la ", hAcc: "IA", h2: ".", stat: "años en ML y software",
+    about: { label: "// sobre mí", h1: "Uso ético de la ", hAcc: "IA", h2: ".", stat: "años en ML y software",
       body: "Trabajo para sacar el máximo partido a los LLM donde tiene sentido, manteniendo siempre barreras de seguridad, métricas estrictas y una persona en el bucle." },
     tl: { label: "// experiencia y formación", h: "Una sola línea", p: "Todo lo que he estudiado y construido, de lo más reciente a lo más antiguo y a escala.",
       eduLegend: "Formación", expLegend: "Experiencia", volLegend: "Voluntariado", projLegend: "Proyectos", foldLegend: "Tiempo plegado",
@@ -26,7 +26,7 @@
     ],
     vol: [
       { name: "Les Enfants du Soleil", sub: "Voluntario · ONG de infancia", place: "Toamasina, MG" },
-      { name: "4L Trophy — Les Enfants du Désert", sub: "Tripulación · rally estudiantil de reparto de material escolar", place: "Boulajoul, MA" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Tripulación · rally estudiantil de reparto de material escolar", place: "Boulaajoul, MA" },
     ],
     exp: [
       { role: "Becario de automatización QA", org: "Selectra", place: "Madrid, ES", note: "Automatización de pruebas con Katalon, Selenium y Groovy." },
@@ -71,8 +71,8 @@
       { group: "Ingeniería / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS (serverless)", "Postgres · S3", "Argilla (humano en el bucle)", "OpenTelemetry", "uv · ruff"] },
     ],
     languages: [
-      { name: "Francés", level: "Nativo", flag: "🇫🇷" }, { name: "Inglés", level: "Fluido · C2", flag: "🇬🇧" },
-      { name: "Español", level: "Fluido · C2", flag: "🇪🇸" }, { name: "Catalán", level: "Conversacional · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
+      { name: "Francés", level: "Nativo", flag: "fr" }, { name: "Inglés", level: "Fluido · C2", flag: "en" },
+      { name: "Español", level: "Fluido · C2", flag: "es" }, { name: "Catalán", level: "Conversacional · B1", flag: "ca" },
     ],
     beyond: ["Remote-first, equipos distribuidos", "Entrega guiada por evaluación", "Charlas y talleres internos", "Mentoría y revisión de código"],
   };
