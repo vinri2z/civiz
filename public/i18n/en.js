@@ -4,7 +4,7 @@
 // index.html — do not duplicate it here.
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).en = {
-    code: "EN", label: "English (UK)",
+    code: "EN", label: "English",
     nav: { about: "about", work: "work", skills: "skills", timeline: "timeline", contact: "contact" },
     hero: { loc: "Valencia, Spain", pron: "He/Him", title: "Senior Data Scientist · AI Engineer", tag: "LLM applications", email: "Email", scroll: "SCROLL", spin: "SCROLL SIDEWAYS TO SPIN",
       summary: "Machine-learning and software engineer with 6+ years turning large text corpora such as regulations, annual reports and corporate disclosures into structured, queryable data. I build the whole path: classical filter, LLM extractor, and the evaluation harness that measures it." },
@@ -14,10 +14,10 @@
       eduLegend: "Education", expLegend: "Experience", volLegend: "Volunteering", projLegend: "Projects", foldLegend: "Time folded",
       yr1: "yr", yrN: "yr", mo1: "mo", moN: "mo", present: "Present", workLink: "Project details",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] },
-    work: { label: "// selected work", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck on slideshare.net", timelineLink: "See on timeline" },
+    work: { label: "// selected projects", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck on slideshare.net", timelineLink: "See on timeline" },
     tk: { label: "// toolkit", h: "How I build" },
     sk: { label: "// skills", h: "Languages & beyond", langs: "Languages", beyond: "Ways of working" },
-    ct: { label: "// let's talk", h1: "Building an AI-native application?", h2: "", p: "I'd like to hear about it, contact me - I'm based in Valencia and work remotely.", footer: "© 2026 Vincent Rizzo · Valencia, Spain" },
+    ct: { label: "// let's talk", h1: "Building an AI-native application?", h2: "", p: "I'd like to hear about it, contact me - I'm based in Valencia and work remotely.", copied: "Email address copied", footer: "© 2026 Vincent Rizzo · Valencia, Spain" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat Scientifique, Engineering Sciences · Jury's commendation", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathematics & Physics", place: "Versailles, FR" },
