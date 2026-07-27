@@ -14,7 +14,7 @@
       eduLegend: "Formació", expLegend: "Experiència", volLegend: "Voluntariat", projLegend: "Projectes", foldLegend: "Temps plegat",
       yr1: "any", yrN: "anys", mo1: "mes", moN: "mesos", present: "Actualitat", workLink: "Detalls del projecte",
       months: ["gen.", "febr.", "març", "abr.", "maig", "juny", "jul.", "ag.", "set.", "oct.", "nov.", "des."] },
-    work: { label: "// treballs seleccionats", h: "El que he construït", p: "Sistemes que llegeixen documents a escala. Obre qualsevol projecte per veure el detall tècnic.", show: "Veure detall ▾", hide: "Amagar detall ▴", deck: "Veure la presentació", timelineLink: "Veure a la trajectòria" },
+    work: { label: "// treballs seleccionats", h: "El que he construït", p: "Sistemes que llegeixen documents a escala. Obre qualsevol projecte per veure el detall tècnic.", show: "Veure detall ▾", hide: "Amagar detall ▴", deck: "Veure la presentació a slideshare.net", timelineLink: "Veure a la trajectòria" },
     tk: { label: "// eines", h: "Com construeixo" },
     sk: { label: "// aptituds", h: "Idiomes i més", langs: "Idiomes", beyond: "Maneres de treballar" },
     ct: { label: "// parlem-ne", h1: "Estàs construint una aplicació nativa d'IA?", h2: "", p: "M'encantaria saber-ho, escriu-me: visc a València i treballo en remot.", footer: "© 2026 Vincent Rizzo · València, Espanya" },

@@ -14,7 +14,7 @@
       eduLegend: "Education", expLegend: "Experience", volLegend: "Volunteering", projLegend: "Projects", foldLegend: "Time folded",
       yr1: "yr", yrN: "yr", mo1: "mo", moN: "mo", present: "Present", workLink: "Project details",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] },
-    work: { label: "// selected work", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck", timelineLink: "See on timeline" },
+    work: { label: "// selected work", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck on slideshare.net", timelineLink: "See on timeline" },
     tk: { label: "// toolkit", h: "How I build" },
     sk: { label: "// skills", h: "Languages & beyond", langs: "Languages", beyond: "Ways of working" },
     ct: { label: "// let's talk", h1: "Building an AI-native application?", h2: "", p: "I'd like to hear about it, contact me - I'm based in Valencia and work remotely.", footer: "© 2026 Vincent Rizzo · Valencia, Spain" },

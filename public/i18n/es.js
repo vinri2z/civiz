@@ -14,7 +14,7 @@
       eduLegend: "Formación", expLegend: "Experiencia", volLegend: "Voluntariado", projLegend: "Proyectos", foldLegend: "Tiempo plegado",
       yr1: "año", yrN: "años", mo1: "mes", moN: "meses", present: "Actualidad", workLink: "Detalles del proyecto",
       months: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"] },
-    work: { label: "// trabajos seleccionados", h: "Lo que he construido", p: "Sistemas que leen documentos a escala. Abre cualquier proyecto para ver el detalle técnico.", show: "Ver detalle ▾", hide: "Ocultar detalle ▴", deck: "Ver la presentación", timelineLink: "Ver en la trayectoria" },
+    work: { label: "// trabajos seleccionados", h: "Lo que he construido", p: "Sistemas que leen documentos a escala. Abre cualquier proyecto para ver el detalle técnico.", show: "Ver detalle ▾", hide: "Ocultar detalle ▴", deck: "Ver la presentación en slideshare.net", timelineLink: "Ver en la trayectoria" },
     tk: { label: "// herramientas", h: "Cómo construyo" },
     sk: { label: "// aptitudes", h: "Idiomas y más", langs: "Idiomas", beyond: "Formas de trabajar" },
     ct: { label: "// hablemos", h1: "¿Construyes una aplicación nativa de IA?", h2: "", p: "Me encantaría saberlo, escríbeme: vivo en Valencia y trabajo en remoto.", footer: "© 2026 Vincent Rizzo · Valencia, España" },
