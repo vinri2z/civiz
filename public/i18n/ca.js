@@ -17,7 +17,7 @@
     work: { label: "// treballs seleccionats", h: "El que he construït", p: "Sistemes que llegeixen documents a escala. Obre qualsevol projecte per veure el detall tècnic.", show: "Veure detall ▾", hide: "Amagar detall ▴", deck: "Veure la presentació", timelineLink: "Veure a la trajectòria" },
     tk: { label: "// eines", h: "Com construeixo" },
     sk: { label: "// aptituds", h: "Idiomes i més", langs: "Idiomes", beyond: "Maneres de treballar" },
-    ct: { label: "// parlem-ne", h1: "Construeixes alguna cosa que llegeix", h2: "documents tot el dia?", p: "M'encantaria saber-ne més. Escriu-me: visc a València i treballo en remot.", footer: "© 2026 Vincent Rizzo · València, Espanya" },
+    ct: { label: "// parlem-ne", h1: "Estàs construint una aplicació nativa en IA?", h2: "", p: "M'encantaria saber-ho, escriu-me: visc a València i treballo en remot.", footer: "© 2026 Vincent Rizzo · València, Espanya" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Batxillerat científic, ciències de l'enginyeria · Felicitacions del jurat", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Matemàtiques i Física", place: "Versalles, FR" },
@@ -72,7 +72,7 @@
     ],
     languages: [
       { name: "Francès", level: "Natiu", flag: "🇫🇷" }, { name: "Anglès", level: "Fluid · C2", flag: "🇬🇧" },
-      { name: "Espanyol", level: "Fluid · C2", flag: "🇪🇸" }, { name: "Català", level: "Conversacional · B1", flag: "🇦🇩" },
+      { name: "Espanyol", level: "Fluid · C2", flag: "🇪🇸" }, { name: "Català", level: "Conversacional · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
     ],
     beyond: ["Remote-first, equips distribuïts", "Lliurament guiat per l'avaluació", "Xerrades i tallers interns", "Mentoria i revisió de codi"],
   };

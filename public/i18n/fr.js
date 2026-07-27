@@ -17,7 +17,7 @@
     work: { label: "// travaux sélectionnés", h: "Ce que j'ai construit", p: "Des systèmes qui lisent des documents à grande échelle. Ouvrez un projet pour le détail technique.", show: "Voir le détail ▾", hide: "Masquer le détail ▴", deck: "Voir la présentation", timelineLink: "Voir sur la frise" },
     tk: { label: "// boîte à outils", h: "Comment je construis" },
     sk: { label: "// compétences", h: "Langues et au-delà", langs: "Langues", beyond: "Façons de travailler" },
-    ct: { label: "// contactez moi", h1: "Besoin d'un pipeline de ", h2: "NLP ?", p: "Je suis curieux d'en discuter. Écrivez-moi - je suis basé à Valence et peux travailler à distance.", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
+    ct: { label: "// contactez moi", h1: "Vous développez une application native en IA ?", h2: "", p: "J'aimerais en discuter, écrivez-moi - je suis basé à Valence et peux travailler à distance.", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat scientifique, sciences de l'ingénieur · Félicitations du jury", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathématiques et Physique", place: "Versailles, FR" },
@@ -72,7 +72,7 @@
     ],
     languages: [
       { name: "Français", level: "Langue maternelle", flag: "🇫🇷" }, { name: "Anglais", level: "Courant · C2", flag: "🇬🇧" },
-      { name: "Espagnol", level: "Courant · C2", flag: "🇪🇸" }, { name: "Catalan", level: "Conversationnel · B1", flag: "🇦🇩" },
+      { name: "Espagnol", level: "Courant · C2", flag: "🇪🇸" }, { name: "Catalan", level: "Conversationnel · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
     ],
     beyond: ["Remote-first, équipes distribuées", "Livraison guidée par l'évaluation", "Conférences et ateliers internes", "Mentorat et revue de code"],
   };

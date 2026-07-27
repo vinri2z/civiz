@@ -935,10 +935,9 @@ class Component extends DCLogic {
 
     const HOME = [-0.3763, 39.4699]; // Valencia, Spain
 
-    const target = () => {
+    const target = (s) => {
       const pts = flat();
       if (!pts.length) return { pt: HOME, idx: 0, pts };
-      const s = scan();
       if (s <= pts[0].t) return { pt: pts[0].c, idx: 0, pts };
       const L = pts.length - 1;
       if (s >= pts[L].t) return { pt: pts[L].c, idx: L, pts };
@@ -994,14 +993,27 @@ class Component extends DCLogic {
       return r.top <= c && r.bottom >= c;
     };
 
-    const frame = () => {
+    // Scroll drives the globe through a smoothed copy of the scan position: the
+    // wheel/trackpad delivers scroll in coarse jumps, and easing the waypoint
+    // position (not just the rotation) is what turns those jumps into a glide.
+    let sCur = scan(), lastT = 0;
+    const SCROLL_EASE = 0.09;
+
+    const frame = (now) => {
       if (this._dead) return;
+      // Every easing rate below is written per 60fps frame, then rescaled to the
+      // real frame time, so a 120Hz screen doesn't animate at double speed.
+      const dt = lastT ? Math.min(64, now - lastT) : 16.6667;
+      lastT = now;
+      const f = dt / 16.6667;
+      const k = r => 1 - Math.pow(1 - r, f);
+
       const idle = !onTimeline();
       let idx = lastIdx, pts = null, zoomTarget = 1;
 
       // user spin: integrate, then coast to a stop
-      spinOff += spinVel;
-      spinVel *= 0.94;
+      spinOff += spinVel * f;
+      spinVel *= Math.pow(0.94, f);
       if (Math.abs(spinVel) < 0.004) spinVel = 0;
       if (spinOff > 180) spinOff -= 360; else if (spinOff < -180) spinOff += 360;
       spinIdleFrames = spinVel ? 0 : spinIdleFrames + 1;
@@ -1009,24 +1021,29 @@ class Component extends DCLogic {
       // stays spun. On the timeline the lock has to come back, or the highlighted
       // city ends up on the far side of the globe from its own card.
       if (!idle && spinIdleFrames > FREE_FRAMES) {
-        spinOff *= 0.975;
+        spinOff *= Math.pow(0.975, f);
         if (Math.abs(spinOff) < 0.05) spinOff = 0;
       }
 
       if (idle) {
         // carry on from wherever the globe is, so entering and leaving the
         // timeline never snaps
-        cur[0] += IDLE_SPIN;
+        cur[0] += IDLE_SPIN * f;
         if (cur[0] > 180) cur[0] -= 360;
+        // keep the smoothed scroll position glued to the real one while off the
+        // timeline, so re-entering it doesn't replay a stale glide
+        sCur = scan();
         settled = 0;
       } else {
-        const t = target();
+        sCur += (scan() - sCur) * k(SCROLL_EASE);
+        const t = target(sCur);
         pts = t.pts; idx = t.idx;
         let dl = t.pt[0] - cur[0];
         while (dl > 180) dl -= 360;
         while (dl < -180) dl += 360;
         const dp = t.pt[1] - cur[1];
-        cur[0] += dl * 0.055; cur[1] += dp * 0.055;
+        const kr = k(0.055);
+        cur[0] += dl * kr; cur[1] += dp * kr;
         const moving = Math.abs(dl) > 0.02 || Math.abs(dp) > 0.02;
         if (moving) settled = 0; else settled++;
 
@@ -1034,7 +1051,9 @@ class Component extends DCLogic {
         // city it is flying to, the further in we lean. Flying between two
         // cities pulls back out to whole-earth so the hop stays readable.
         // A user spin also cancels it — you can't spin a zoomed-in crop.
-        const near = 1 - Math.min(1, d3.geoDistance(cur, t.pt) / 0.20); // 0.20 rad ≈ 1300km
+        // ease() on `near` rounds off both ends of the lean-in, so the zoom has
+        // no corner where it starts or stops moving.
+        const near = ease(1 - Math.min(1, d3.geoDistance(cur, t.pt) / 0.20)); // 0.20 rad ≈ 1300km
         zoomTarget = spinVel || spinOff ? 1 : 1 + near * (ZOOM_IN - 1);
 
         if (idx !== lastIdx) {
@@ -1047,7 +1066,7 @@ class Component extends DCLogic {
       if (placeEl) placeEl.style.opacity = idle ? '0' : '1';
 
       const zooming = Math.abs(zoomTarget - zoom) > 0.0015;
-      if (zooming) zoom += (zoomTarget - zoom) * 0.05; else zoom = zoomTarget;
+      if (zooming) zoom += (zoomTarget - zoom) * k(0.05); else zoom = zoomTarget;
 
       if (settled < 3 || zooming || spinVel || spinOff) {
         projection.scale(baseR * zoom);
@@ -1074,11 +1093,15 @@ class Component extends DCLogic {
         const active = pts ? waypoints[Math.max(0, Math.min(idx, waypoints.length - 1))]
           : waypoints.find(p => p.c[0] === HOME[0] && p.c[1] === HOME[1]);
         const seen = {};
+        // Only the highlighted city is named. Labelling every dot turns the
+        // globe into a list; one name is a caption for where we are.
+        let label = null;
         waypoints.forEach(p => {
           const key = p.c.join(',');
           if (seen[key]) return;
           seen[key] = 1;
-          if (d3.geoDistance(p.c, center) > 1.52) return;
+          const d = d3.geoDistance(p.c, center);
+          if (d > 1.52) return;
           const xy = projection(p.c);
           if (!xy) return;
           const on = active && key === active.c.join(',');
@@ -1088,7 +1111,27 @@ class Component extends DCLogic {
             ctx.beginPath(); ctx.arc(xy[0], xy[1], 13, 0, 6.2832);
             ctx.lineWidth = 1.4; ctx.strokeStyle = 'oklch(0.62 0.13 150 / 0.5)'; ctx.stroke();
           }
+          if (on && p.n) label = { xy, n: p.n, d };
         });
+
+        // Drawn after the dots so no neighbouring dot lands on top of the name,
+        // and faded out towards the limb along with its own dot.
+        if (label) {
+          const a = Math.max(0, Math.min(1, (1.4 - label.d) / 0.3));
+          ctx.textBaseline = 'middle';
+          ctx.font = "600 12.5px 'JetBrains Mono', ui-monospace, monospace";
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = 3.4;
+          // A zoomed-in crop routinely puts the city near an edge; the name flips
+          // to the other side of the dot rather than running off the canvas.
+          const flip = label.xy[0] + 18 + ctx.measureText(label.n).width > W - 14;
+          ctx.textAlign = flip ? 'right' : 'left';
+          const x = label.xy[0] + (flip ? -18 : 18), y = label.xy[1] - 0.5;
+          ctx.strokeStyle = 'oklch(0.985 0.008 150 / ' + (a * 0.85) + ')';
+          ctx.strokeText(label.n, x, y);
+          ctx.fillStyle = 'oklch(0.34 0.09 150 / ' + a + ')';
+          ctx.fillText(label.n, x, y);
+        }
       }
       this._raf = requestAnimationFrame(frame);
     };
@@ -1266,7 +1309,7 @@ class Component extends DCLogic {
       // it actually covers: Querétaro Jul 2020 - Aug 2022, London the tail
       { logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg", showLogo: true, color: g3, barLeft: EXP_L,
         from: [2020, 7], to: [2022, 9], range: [2020.5, 2022.67],
-        cities: [{ ...CITY.london, r: [2022.583, 2022.667] }, { ...CITY.queretaro, r: [2020.5, 2022.583] }],
+        cities: [{ ...CITY.london, r: [2022.625, 2022.667] }, { ...CITY.queretaro, r: [2020.5, 2022.625] }],
         ...seg(2020.5, 2022.67) },
       { logoId: "logo-dm", logoSrc: "assets/datamaran-logo.svg", showLogo: true, color: g4, barLeft: EXP_L,
         from: [2022, 9], to: null, cities: [CITY.valencia], ...seg(2022.67, 2026.55) },
