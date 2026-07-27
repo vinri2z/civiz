@@ -141,7 +141,7 @@
         <a href="{{ profile.links.github }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid oklch(0.8 0.03 150);background:oklch(0.99 0.005 140)"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.05-.02-2.06-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"></path></svg>GitHub ↗</a>
       </div>
     </div>
-    <div data-scroll-hint="" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:oklch(0.5 0.04 150);animation:bob 2.4s ease-in-out infinite;z-index:40;transition:opacity .4s ease;pointer-events:none">{{ t.hero.scroll }}</div>
+    <div data-scroll-hint="scroll" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:oklch(0.5 0.04 150);animation:bob 2.4s ease-in-out infinite;z-index:40;transition:opacity .4s ease;pointer-events:none">{{ t.hero.scroll }}</div>
   </section>
 
   <!-- ABOUT -->
@@ -260,7 +260,7 @@
       <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.63 0.1 208)"></span>{{ t.tl.eduLegend }}</span>
       <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.55 0.13 150)"></span>{{ t.tl.expLegend }}</span>
       <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.72 0.14 62)"></span>{{ t.tl.volLegend }}</span>
-      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:14px;border-radius:4px;background:oklch(0.58 0.15 300)"></span>{{ t.tl.projLegend }}</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:14px;border-radius:4px;background:oklch(0.95 0.25 110)"></span>{{ t.tl.projLegend }}</span>
       <sc-if value="{{ tl.hasFolds }}" hint-placeholder-val="{{ true }}">
         <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:0;border-top:1px dashed oklch(0.74 0.02 150)"></span>{{ t.tl.foldLegend }}</span>
       </sc-if>
@@ -582,7 +582,9 @@ class Component extends DCLogic {
       // Stays stuck to the bottom of the viewport for the whole page, not just
       // the hero, and only fades once there's nothing left below to scroll to.
       const hint = document.querySelector('[data-scroll-hint]');
-      if (hint) hint.style.opacity = (max - h.scrollTop) < 4 ? '0' : '1';
+      // Fade out well before the literal last pixel: subpixel rounding and
+      // zoom leave a few px of slack the old 4px window never reached.
+      if (hint) hint.style.opacity = (max - h.scrollTop) < 80 ? '0' : '1';
       document.querySelectorAll('[data-parallax]').forEach(el => {
         const s = parseFloat(el.dataset.parallax) || 0.1;
         const base = el.dataset.baseX ? 'translateX(' + el.dataset.baseX + ') ' : '';
@@ -1338,7 +1340,7 @@ class Component extends DCLogic {
     // order and it leaves a gap in H2 2024 — so every slot names its project by
     // key. Copy still comes from the Work cards (L.projects), which stay the
     // single source of truth for titles; only dates and assets live here.
-    const violet = "oklch(0.95 0.25 110)";
+    const yellow = "oklch(0.95 0.25 110)";
     const projBase = [
       { key: "iro", from: [2024, 1], to: [2024, 6], ...seg(2024.0, 2024.5) },
       { key: "platform", from: [2025, 1], to: [2025, 6], ...seg(2025.0, 2025.5) },
@@ -1352,7 +1354,7 @@ class Component extends DCLogic {
         ...this.logoFields(this.PROJECTS[at]),
         workHref: this.sectionHref('projects', { p: p.key }),
         onWorkLink: (e) => this.goTo(e, 'projects', { p: p.key }),
-        color: violet, barLeft: PROJ_L, cardLeft: PROJ_CARD_LEFT, cardW: CARD_W,
+        color: yellow, barLeft: PROJ_L, cardLeft: PROJ_CARD_LEFT, cardW: CARD_W,
         ...leftColText, ck: 'proj-' + i, gap: gapFor('proj-' + i, PROJ_GAP), i,
         // H1 and H2 2025 are adjacent, so inset each bar to leave a visible seam
         topPx: +(p.topPx + 2).toFixed(1), hPx: +(p.hPx - 4).toFixed(1),

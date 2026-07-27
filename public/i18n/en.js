@@ -17,7 +17,7 @@
     work: { label: "// selected work", h: "What I've built", p: "Systems that read documents at scale. Expand any project for the engineering detail.", show: "Show details ▾", hide: "Hide details ▴", deck: "View the talk deck", timelineLink: "See on timeline" },
     tk: { label: "// toolkit", h: "How I build" },
     sk: { label: "// skills", h: "Languages & beyond", langs: "Languages", beyond: "Ways of working" },
-    ct: { label: "// let's talk", h1: "Building an AI-native applicative?", h2: "", p: "I'd like to hear about it, contact me - I'm based in Valencia and work remotely.", footer: "© 2026 Vincent Rizzo · Valencia, Spain" },
+    ct: { label: "// let's talk", h1: "Building an AI-native application?", h2: "", p: "I'd like to hear about it, contact me - I'm based in Valencia and work remotely.", footer: "© 2026 Vincent Rizzo · Valencia, Spain" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat Scientifique, Engineering Sciences · Jury's commendation", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathematics & Physics", place: "Versailles, FR" },

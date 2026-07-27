@@ -17,7 +17,7 @@
     work: { label: "// trabajos seleccionados", h: "Lo que he construido", p: "Sistemas que leen documentos a escala. Abre cualquier proyecto para ver el detalle técnico.", show: "Ver detalle ▾", hide: "Ocultar detalle ▴", deck: "Ver la presentación", timelineLink: "Ver en la trayectoria" },
     tk: { label: "// herramientas", h: "Cómo construyo" },
     sk: { label: "// aptitudes", h: "Idiomas y más", langs: "Idiomas", beyond: "Formas de trabajar" },
-    ct: { label: "// hablemos", h1: "¿Construyes una aplicación nativa en IA?", h2: "", p: "Me encantaría saberlo, escríbeme: vivo en Valencia y trabajo en remoto.", footer: "© 2026 Vincent Rizzo · Valencia, España" },
+    ct: { label: "// hablemos", h1: "¿Construyes una aplicación nativa de IA?", h2: "", p: "Me encantaría saberlo, escríbeme: vivo en Valencia y trabajo en remoto.", footer: "© 2026 Vincent Rizzo · Valencia, España" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Bachillerato científico, ciencias de la ingeniería · Felicitaciones del jurado", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Matemáticas y Física", place: "Versalles, FR" },
