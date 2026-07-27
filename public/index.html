@@ -232,7 +232,7 @@
         <div style="display:flex;flex-direction:column;gap:12px;max-width:420px">
           <sc-for list="{{ languages }}" as="lg" hint-placeholder-count="4">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:11px;border-bottom:1px solid oklch(0.93 0.012 150)">
-              <span style="font-size:16.5px;color:oklch(0.3 0.03 150)">{{ lg.name }}</span>
+              <span style="font-size:16.5px;color:oklch(0.3 0.03 150)">{{ lg.flag }} {{ lg.name }}</span>
               <span style="font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.03em;color:oklch(0.52 0.08 150);text-align:right">{{ lg.level }}</span>
             </div>
           </sc-for>
