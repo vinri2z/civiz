@@ -647,6 +647,7 @@ class Component extends DCLogic {
     if (this._nameRaf) cancelAnimationFrame(this._nameRaf);
     if (this._nameIo) this._nameIo.disconnect();
     if (this._nameEvap) clearInterval(this._nameEvap);
+    if (this._globeEvap) clearInterval(this._globeEvap);
     if (this._nameResizeT) clearTimeout(this._nameResizeT);
     if (this._onNameMove) window.removeEventListener('mousemove', this._onNameMove);
     if (this._onNameLeave) window.removeEventListener('mouseout', this._onNameLeave);
@@ -690,8 +691,8 @@ class Component extends DCLogic {
     const PUSH = 1;      // repulsion strength
     const SPRING = 0.2;// pull back home
     const DAMP = 0.8;   // velocity decay
-    const EVAP_EVERY = 10000; // ms between dots that leave for good
-    const EVAP_SPEED = 0.28;  // px/frame — a slow drift outwards
+    const EVAP_EVERY = 1200; // ms between dots that leave for good
+    const EVAP_SPEED = 0.4;  // px/frame — a slow drift outwards
     const INK = 'oklch(0.22 0.02 150)';
 
     let pts = [], W = 0, H = 0, dpr = 1, dot = 2, live = true;
@@ -747,7 +748,7 @@ class Component extends DCLogic {
       return true;
     };
 
-    // Roughly one dot every ten seconds cuts loose and radiates away from the
+    // Roughly one dot a second cuts loose and radiates away from the
     // middle of the name at a constant crawl — the only hint at rest that the
     // letters are a cloud and not type. It keeps its full weight the whole way
     // and is recycled back to its home pixel once it clears the canvas.
@@ -892,30 +893,50 @@ class Component extends DCLogic {
     const PUSH = 5;        // repulsion strength
     const SPRING = 0.12;   // pull back home
     const DAMP = 0.84;     // velocity decay
-    // The globe is only ever five flat colours, so instead of sampling RGB per
-    // dot we render an off-screen pass where each layer writes a distinct red
+    // Dots leave for good now and then: one cuts loose, drifts off the limb at a
+    // crawl and its cell stays empty until it clears the canvas. A missing dot in
+    // a field of eighty thousand is invisible, which is the point — the only tell
+    // is the one that is moving.
+    const EVAP_EVERY = 600;   // ms between dots that leave for good
+    const EVAP_SPEED = 0.4;   // px/frame
+    const MAX_FREE = 26;      // adrift at once
+    // The globe is only ever a handful of flat colours, so instead of sampling RGB
+    // per dot we render an off-screen pass where each layer writes a distinct red
     // value, then map that back to a palette index. One fillStyle per layer per
-    // frame instead of one per dot.
+    // frame instead of one per dot. The waypoint markers are layers like any
+    // other, so the cities are part of the cloud and scatter with it.
     const PALETTE = [
-      'oklch(0.955 0.022 190)', // sphere
-      'oklch(0.87 0.03 195)',   // graticule
-      'oklch(0.885 0.055 152)', // land
-      'oklch(0.79 0.06 155)',   // land edge
-      'oklch(0.82 0.05 175)'    // limb
+      'oklch(0.955 0.022 190)',     // sphere
+      'oklch(0.87 0.03 195)',       // graticule
+      'oklch(0.885 0.055 152)',     // land
+      'oklch(0.79 0.06 155)',       // land edge
+      'oklch(0.82 0.05 175)',       // limb
+      'oklch(0.74 0.07 155)',       // waypoint
+      'oklch(0.58 0.14 150)',       // waypoint, the one the timeline owns
+      'oklch(0.62 0.13 150 / 0.5)'  // ring around it
     ];
+    const LAYER = 25; // red value per layer id, so eight of them fit under 255
     const interactive = !window.matchMedia
       || (window.matchMedia('(hover:hover) and (pointer:fine)').matches
         && !window.matchMedia('(prefers-reduced-motion:reduce)').matches);
     const mouse = { x: -1e5, y: -1e5, on: false };
-    // ~20k dots on a pointer device; touch hardware gets a coarser grid, since it
-    // can't scatter them anyway and has to redraw the lot on every spin frame.
-    const STEP = interactive ? 2 : 3;  // dot grid pitch, px
-    const DOT = interactive ? 1.5 : 2; // dot size — under the pitch, so it reads as texture
+    // Touch hardware gets a coarser grid: it can't scatter the dots anyway, and it
+    // still has to redraw the lot on every spin frame.
+    const STEP = interactive ? 1.6 : 3;   // dot grid pitch, px
+    const DOT = interactive ? 1.35 : 2;   // dot size — under the pitch, so it reads as texture
 
     // off-screen state: one pixel per dot, so the read-back is grid-sized, not
     // screen-sized
     let octx, opath, oproj, gw = 0, gh = 0, ox0 = 0, oy0 = 0;
-    let pos = null, tag = null, bucket = null, bn = null, cloudBusy = false;
+    let pos = null, tag = null, bucket = null, bn = null, curs = null, cnt = null;
+    let cloudBusy = false, sampled = false;
+    // Dots that have come loose live in their own short list rather than in the
+    // grid loop: their home cell is marked empty after each sample pass, so the
+    // hot loop never has to know they exist.
+    const free = new Float32Array(MAX_FREE * 4); // x, y, vx, vy
+    const freeCell = new Int32Array(MAX_FREE);
+    const freeCol = new Int8Array(MAX_FREE);
+    let fn = 0;
 
     const buildCloud = () => {
       const R = projection.scale();
@@ -934,8 +955,14 @@ class Component extends DCLogic {
       const n = gw * gh;
       pos = new Float32Array(n * 4); // x, y, vx, vy
       tag = new Int8Array(n);
-      bucket = PALETTE.map(() => new Float32Array(n * 2));
-      bn = new Int32Array(PALETTE.length);
+      // One position array for every dot, carved into a contiguous run per layer
+      // by the counts the sample pass takes. A Float32Array per layer would be
+      // eight times the memory for the same dots.
+      bucket = new Float32Array(n * 2);
+      bn = new Int32Array(PALETTE.length + 1); // run starts, plus the end marker
+      curs = new Int32Array(PALETTE.length);
+      cnt = new Int32Array(PALETTE.length);
+      fn = 0; sampled = false;
       for (let r = 0, i = 0; r < gh; r++) {
         const hy = oy0 + (r + 0.5) * STEP;
         for (let c = 0; c < gw; c++, i++) {
@@ -946,27 +973,76 @@ class Component extends DCLogic {
     };
 
     // Re-render the globe into the tiny off-screen buffer and read which layer
-    // owns each dot. Only needed while the globe is actually turning.
-    const sampleCloud = () => {
+    // owns each dot. Only needed while the globe is actually turning. The waypoint
+    // markers go in last, so a city's pixels win over the land underneath and its
+    // dots come out of the cloud rather than sitting on top of it.
+    const sampleCloud = (waypoints, activeKey, center) => {
+      const id = k => 'rgb(' + (k + 1) * LAYER + ',0,0)';
       oproj.rotate(projection.rotate());
       octx.clearRect(0, 0, gw, gh);
       octx.beginPath(); opath({ type: 'Sphere' });
-      octx.fillStyle = 'rgb(40,0,0)'; octx.fill();
+      octx.fillStyle = id(0); octx.fill();
       octx.beginPath(); opath(graticule);
-      octx.lineWidth = 0.4; octx.strokeStyle = 'rgb(80,0,0)'; octx.stroke();
+      octx.lineWidth = 0.4; octx.strokeStyle = id(1); octx.stroke();
       octx.beginPath(); opath(land);
-      octx.fillStyle = 'rgb(120,0,0)'; octx.fill();
-      octx.lineWidth = 0.5; octx.strokeStyle = 'rgb(160,0,0)'; octx.stroke();
+      octx.fillStyle = id(2); octx.fill();
+      octx.lineWidth = 0.5; octx.strokeStyle = id(3); octx.stroke();
       octx.beginPath(); opath({ type: 'Sphere' });
-      octx.lineWidth = 0.9; octx.strokeStyle = 'rgb(200,0,0)'; octx.stroke();
+      octx.lineWidth = 0.9; octx.strokeStyle = id(4); octx.stroke();
+
+      if (waypoints) {
+        const seen = {};
+        waypoints.forEach(p => {
+          const key = p.c.join(',');
+          if (seen[key]) return;
+          seen[key] = 1;
+          if (d3.geoDistance(p.c, center) > 1.52) return;
+          const xy = oproj(p.c);
+          if (!xy) return;
+          const on = key === activeKey;
+          // A shade wider than the solid markers were: a disc made of dots at
+          // this coverage reads lighter than the same disc filled.
+          octx.beginPath(); octx.arc(xy[0], xy[1], (on ? 7 : 3.6) / STEP, 0, 6.2832);
+          octx.fillStyle = id(on ? 6 : 5); octx.fill();
+          if (on) {
+            octx.beginPath(); octx.arc(xy[0], xy[1], 13 / STEP, 0, 6.2832);
+            octx.lineWidth = 1.6 / STEP; octx.strokeStyle = id(7); octx.stroke();
+          }
+        });
+      }
 
       const d = octx.getImageData(0, 0, gw, gh).data;
+      const top = PALETTE.length - 1;
+      cnt.fill(0);
       for (let i = 0, n = gw * gh; i < n; i++) {
         const a = d[i * 4 + 3];
         if (a < 40) { tag[i] = -1; continue; }
         // antialiased edges land between two layer ids; nearest one wins
-        const k = Math.round(d[i * 4] / 40) - 1;
-        tag[i] = k < 0 ? 0 : (k > 4 ? 4 : k);
+        const k = Math.round(d[i * 4] / LAYER) - 1;
+        const t = k < 0 ? 0 : (k > top ? top : k);
+        tag[i] = t; cnt[t]++;
+      }
+      // A dot that has come loose leaves its cell empty behind it.
+      for (let k = 0; k < fn; k++) tag[freeCell[k]] = -1;
+      // Carve the position array into one run per layer.
+      for (let k = 0, at = 0; k <= top; k++) { bn[k] = at; at += cnt[k]; bn[k + 1] = at; }
+    };
+
+    const release = () => {
+      if (!tag || fn >= MAX_FREE) return;
+      const tr = projection.translate();
+      for (let t = 0; t < 30; t++) {
+        const i = (Math.random() * gw * gh) | 0;
+        if (tag[i] < 0) continue;
+        const hx = ox0 + ((i % gw) + 0.5) * STEP, hy = oy0 + (((i / gw) | 0) + 0.5) * STEP;
+        const a = Math.atan2(hy - tr[1], hx - tr[0]) + (Math.random() - 0.5) * 0.8;
+        const b = fn * 4;
+        free[b] = hx; free[b + 1] = hy;
+        free[b + 2] = Math.cos(a) * EVAP_SPEED; free[b + 3] = Math.sin(a) * EVAP_SPEED;
+        freeCell[fn] = i; freeCol[fn] = tag[i];
+        tag[i] = -1;
+        fn++;
+        return;
       }
     };
 
@@ -975,7 +1051,7 @@ class Component extends DCLogic {
     const drawCloud = () => {
       const half = DOT / 2, R2 = RADIUS * RADIUS;
       let busy = false;
-      for (let k = 0; k < bn.length; k++) bn[k] = 0;
+      for (let k = 0; k < curs.length; k++) curs[k] = bn[k]; // one write cursor per run
 
       for (let r = 0, i = 0; r < gh; r++) {
         const hy = oy0 + (r + 0.5) * STEP;
@@ -1006,25 +1082,63 @@ class Component extends DCLogic {
             pos[b] = x; pos[b + 1] = y; pos[b + 2] = vx; pos[b + 3] = vy;
           }
 
-          const q = bucket[t], j = bn[t]++;
-          q[j * 2] = x; q[j * 2 + 1] = y;
+          // Counts come from the sample pass, so a run can only ever be short —
+          // never past its end, which would spill into the next layer's colour.
+          const j = curs[t];
+          if (j < bn[t + 1]) { curs[t] = j + 1; bucket[j * 2] = x; bucket[j * 2 + 1] = y; }
         }
       }
 
-      for (let k = 0; k < bucket.length; k++) {
-        const q = bucket[k], count = bn[k];
-        if (!count) continue;
+      // The handful that have come loose: constant crawl, no spring, and dropped
+      // once they are off the canvas so their cell fills back in.
+      for (let k = 0; k < fn; k++) {
+        const b = k * 4;
+        const x = free[b] + free[b + 2], y = free[b + 1] + free[b + 3];
+        if (x < ox0 - 30 || y < oy0 - 30 || x > ox0 + gw * STEP + 30 || y > oy0 + gh * STEP + 30) {
+          // Its cell fills back in, which needs the run counts taken again.
+          tag[freeCell[k]] = freeCol[k];
+          sampled = false;
+          fn--;
+          if (k < fn) { // swap the last one down into the hole and re-do this slot
+            const l = fn * 4;
+            free[b] = free[l]; free[b + 1] = free[l + 1];
+            free[b + 2] = free[l + 2]; free[b + 3] = free[l + 3];
+            freeCell[k] = freeCell[fn]; freeCol[k] = freeCol[fn];
+            k--;
+          }
+          continue;
+        }
+        free[b] = x; free[b + 1] = y;
+        busy = true;
+      }
+
+      for (let k = 0; k < PALETTE.length; k++) {
+        const from = bn[k], to = curs[k];
+        // A loose dot keeps the colour it had when it left, so it is drawn with
+        // its own layer rather than folded into the runs.
+        let loose = false;
+        for (let j = 0; j < fn; j++) if (freeCol[j] === k) { loose = true; break; }
+        if (from === to && !loose) continue;
         ctx.fillStyle = PALETTE[k];
         ctx.beginPath();
-        for (let j = 0; j < count; j++) ctx.rect(q[j * 2] - half, q[j * 2 + 1] - half, DOT, DOT);
+        for (let j = from; j < to; j++) ctx.rect(bucket[j * 2] - half, bucket[j * 2 + 1] - half, DOT, DOT);
+        for (let j = 0; j < fn; j++) {
+          if (freeCol[j] !== k) continue;
+          ctx.rect(free[j * 4] - half, free[j * 4 + 1] - half, DOT, DOT);
+        }
         ctx.fill();
       }
       return busy;
     };
 
-    let W = 0, H = 0, dpr = 1;
+    let W = 0, H = 0;
+    // The globe layer stays at one device pixel per CSS pixel while the rest of
+    // the page is retina. Eighty thousand 1.35px squares are fill-rate bound, not
+    // CPU bound: at dpr 2 the same grid costs 34ms a frame and at dpr 1 it costs
+    // 18ms, which is the whole reason the pitch can be this fine. On a pale
+    // background layer at 0.62 opacity the softer dots are no loss.
+    const dpr = 1;
     const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = canvas.clientWidth; H = canvas.clientHeight;
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1181,35 +1295,23 @@ class Component extends DCLogic {
       // Turning, or dots still on their way home, or the pointer is over it:
       // anything else and last frame's pixels are still correct.
       const turning = settled < 3 || !!spinVel || !!spinOff;
-      if (turning || cloudBusy || mouse.on) {
+      if (turning || cloudBusy || mouse.on || fn) {
         projection.rotate([-(cur[0] + spinOff), -cur[1]]);
         ctx.clearRect(0, 0, W, H);
 
-        if (turning) sampleCloud();
+        // The cities are sampled with everything else, so the highlighted one has
+        // to be worked out before the sample pass rather than painted after it.
+        if (turning || !sampled) {
+          const center = [-projection.rotate()[0], -projection.rotate()[1]];
+          const waypoints = pts || flat();
+          // Idle (spinning, off the timeline): no card owns the dot, so default
+          // to highlighting home instead of leaving every dot the same size.
+          const active = pts ? waypoints[Math.max(0, Math.min(idx, waypoints.length - 1))]
+            : waypoints.find(p => p.c[0] === HOME[0] && p.c[1] === HOME[1]);
+          sampleCloud(waypoints, active ? active.c.join(',') : null, center);
+          sampled = true;
+        }
         cloudBusy = drawCloud();
-
-        const center = [-projection.rotate()[0], -projection.rotate()[1]];
-        const waypoints = pts || flat();
-        // Idle (spinning, off the timeline): no card owns the dot, so default
-        // to highlighting home instead of leaving every dot the same size.
-        const active = pts ? waypoints[Math.max(0, Math.min(idx, waypoints.length - 1))]
-          : waypoints.find(p => p.c[0] === HOME[0] && p.c[1] === HOME[1]);
-        const seen = {};
-        waypoints.forEach(p => {
-          const key = p.c.join(',');
-          if (seen[key]) return;
-          seen[key] = 1;
-          if (d3.geoDistance(p.c, center) > 1.52) return;
-          const xy = projection(p.c);
-          if (!xy) return;
-          const on = active && key === active.c.join(',');
-          ctx.beginPath(); ctx.arc(xy[0], xy[1], on ? 5.5 : 3, 0, 6.2832);
-          ctx.fillStyle = on ? 'oklch(0.58 0.14 150)' : 'oklch(0.74 0.07 155)'; ctx.fill();
-          if (on) {
-            ctx.beginPath(); ctx.arc(xy[0], xy[1], 13, 0, 6.2832);
-            ctx.lineWidth = 1.4; ctx.strokeStyle = 'oklch(0.62 0.13 150 / 0.5)'; ctx.stroke();
-          }
-        });
       }
       this._raf = requestAnimationFrame(frame);
     };
@@ -1222,6 +1324,7 @@ class Component extends DCLogic {
       window.addEventListener('mouseout', onLeave);
       this._onGlobeMove = onMove;
       this._onGlobeLeave = onLeave;
+      this._globeEvap = setInterval(() => { if (!this._dead) release(); }, EVAP_EVERY);
     }
 
     this._raf = requestAnimationFrame(frame);
