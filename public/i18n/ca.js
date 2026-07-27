@@ -5,7 +5,7 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).ca = {
     code: "CA", label: "Català",
-    nav: { about: "sobre mi", work: "treballs", skills: "aptituds", timeline: "trajectòria", contact: "contacte" },
+    nav: { about: "sobre mi", work: "treballs", skills: "aptituds", timeline: "trajectòria", contact: "contacte", theme: "Tema clar o fosc" },
     hero: { loc: "València, Espanya", pron: "Ell", title: "Data Scientist Sènior · Enginyer d'IA", tag: "Aplicacions LLM", email: "Correu", scroll: "DESPLAÇA", spin: "DESPLAÇA DE COSTAT PER GIRAR",
       summary: "Enginyer de machine learning i programari amb més de 6 anys convertint grans corpus de text —regulacions, informes anuals i divulgacions corporatives— en dades estructurades i consultables. Construeixo tot el camí: filtre clàssic, extractor amb LLM i l'arnès d'avaluació que el mesura." },
     about: { label: "// sobre mi", h1: "Ús ètic de la ", hAcc: "IA", h2: ".", stat: "anys en ML i programari",
@@ -17,7 +17,7 @@
     work: { label: "// projectes seleccionats", h: "El que he construït", p: "Sistemes que llegeixen documents a escala. Obre qualsevol projecte per veure el detall tècnic.", show: "Veure detall ▾", hide: "Amagar detall ▴", deck: "Veure la presentació a slideshare.net", timelineLink: "Veure a la trajectòria" },
     tk: { label: "// eines", h: "Com construeixo" },
     sk: { label: "// aptituds", h: "Idiomes i més", langs: "Idiomes", beyond: "Maneres de treballar" },
-    ct: { label: "// parlem-ne", h1: "Estàs construint una aplicació nativa d'IA?", h2: "", p: "M'encantaria saber-ho, escriu-me: visc a València i treballo en remot.", copied: "Adreça de correu copiada", footer: "© 2026 Vincent Rizzo · València, Espanya" },
+    ct: { label: "// parlem-ne", h1: "Estàs construint una aplicació nativa d'IA?", h2: "", p: "M'encantaria saber-ho, escriu-me: visc a València i treballo en remot.", copied: "Adreça de correu copiada", copy: "Copiar l'adreça de correu", footer: "© 2026 Vincent Rizzo · València, Espanya" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Batxillerat científic, ciències de l'enginyeria · Felicitacions del jurat", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Matemàtiques i Física", place: "Versalles, FR" },

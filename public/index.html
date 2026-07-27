@@ -10,6 +10,44 @@
 <script src="./i18n/fr.js"></script>
 <script src="./i18n/es.js"></script>
 <script src="./i18n/ca.js"></script>
+<!-- Theme, resolved before the first paint so the page never flashes the wrong
+     one. Runs here rather than in the component because the palette is pure CSS:
+     flipping the attribute is the whole switch, so no render has to wait for it
+     and no re-render can undo it. Stored only once the visitor picks a side —
+     until then the system setting wins, and keeps winning if it changes. -->
+<script>
+(function () {
+  var KEY = 'cv-theme';
+  var sys = window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)');
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (saved !== 'light' && saved !== 'dark') saved = null;
+
+  function apply(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    // Canvas paints with resolved colours, so it can't follow a var on its own.
+    window.dispatchEvent(new CustomEvent('cv-theme'));
+  }
+  apply(saved || (sys && sys.matches ? 'dark' : 'light'));
+
+  if (sys && sys.addEventListener) {
+    sys.addEventListener('change', function (e) {
+      try { if (localStorage.getItem(KEY)) return; } catch (err) {}
+      apply(e.matches ? 'dark' : 'light');
+    });
+  }
+
+  // Delegated, so the button can be re-rendered (a language switch redraws the
+  // whole nav) without losing its handler.
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-theme-toggle]');
+    if (!btn) return;
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(KEY, next); } catch (err) {}
+    apply(next);
+  });
+})();
+</script>
 </head>
 <body>
 <x-dc>
@@ -21,12 +59,194 @@
 <script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
 <style>
+  /* Every colour on the page comes from this block. The markup below is styled
+     inline, so a second palette can only reach it through custom properties —
+     which is why nothing here or there names a colour twice.
+     `:root[data-theme]` is set by the boot script in <head> before first paint;
+     with no stored preference the media query below follows the system. */
+  :root{
+    --bg:oklch(0.981 0.012 138);
+    --bg-glass:oklch(0.981 0.012 138 / 0.82);
+    --bg-glass-hdr:oklch(0.981 0.012 138 / 0.72);
+    --surface:oklch(0.995 0.004 140);
+    --surface-2:oklch(0.99 0.005 140);
+    --surface-3:oklch(0.97 0.012 145);
+    --hover:oklch(0.95 0.02 148);
+    --accent-soft:oklch(0.94 0.03 148);
+    --border:oklch(0.9 0.015 150);
+    --border-soft:oklch(0.91 0.015 150);
+    --border-accent-soft:oklch(0.88 0.03 150);
+    --border-strong:oklch(0.85 0.02 150);
+    --border-strong-2:oklch(0.8 0.03 150);
+    --border-pill:oklch(0.75 0.08 150);
+    --border-hover:oklch(0.68 0.09 150);
+    --flag-bg:oklch(0.9 0.01 150);
+    --flag-edge:oklch(0.2 0 0 / 0.16);
+    /* text, darkest heading to faintest caption */
+    --ink-1:oklch(0.22 0.02 150);
+    --ink-2:oklch(0.24 0.02 150);
+    --ink-3:oklch(0.26 0.02 150);
+    --ink-4:oklch(0.3 0.03 150);
+    --ink-5:oklch(0.34 0.03 150);
+    --ink-6:oklch(0.4 0.02 150);
+    --ink-7:oklch(0.44 0.02 150);
+    --ink-8:oklch(0.5 0.03 150);
+    --ink-9:oklch(0.6 0.03 150);
+    /* green accent, darkest link to brightest dot */
+    --ac-deep:oklch(0.42 0.12 150);
+    --ac-ink:oklch(0.44 0.11 150);
+    --ac:oklch(0.5 0.11 150);
+    --ac-mid:oklch(0.55 0.11 150);
+    --ac-hi:oklch(0.6 0.12 150);
+    --ac-dot:oklch(0.58 0.13 150);
+    --ac-ring:oklch(0.58 0.13 150 / 0.16);
+    /* the one inverted pair on the page: dark pill, light label */
+    --btn-bg:oklch(0.28 0.03 150);
+    --btn-fg:oklch(0.97 0.01 140);
+    --toast-bg:oklch(0.24 0.03 150);
+    --sel-bg:oklch(0.82 0.09 145);
+    --sel-fg:oklch(0.22 0.03 150);
+    --prog-1:oklch(0.62 0.12 150);
+    --prog-2:oklch(0.52 0.12 165);
+    /* decor: hero/contact blobs, hero grid, shadows */
+    --blob-1:oklch(0.86 0.11 148 / 0.55);
+    --blob-2:oklch(0.83 0.09 175 / 0.5);
+    --blob-3:oklch(0.86 0.1 150 / 0.4);
+    --grid:oklch(0.5 0.05 150 / 0.05);
+    --shadow-card:oklch(0.5 0.05 150 / 0.03);
+    --shadow-menu:oklch(0.4 0.05 150 / 0.12);
+    --shadow-toast:oklch(0.3 0.05 150 / 0.28);
+    /* timeline: one hue per band (education, volunteering, projects) plus the
+       four-step green ramp the experience bars walk up */
+    --edu:oklch(0.63 0.1 208);
+    --edu-text:oklch(0.5 0.08 208);
+    --edu-axis:oklch(0.68 0.09 205);
+    --edu-bar-1:oklch(0.68 0.085 205);
+    --edu-bar-2:oklch(0.6 0.1 210);
+    --vol:oklch(0.72 0.14 62);
+    --vol-text:oklch(0.52 0.11 62);
+    --proj:oklch(0.95 0.25 110);
+    --proj-title:oklch(0.34 0.06 300);
+    --proj-text:oklch(0.54 0.1 300);
+    --proj-hair:oklch(0.86 0.03 300);
+    --proj-hair-slope:oklch(0.76 0.07 300);
+    --hair:oklch(0.86 0.02 150);
+    --hair-slope:oklch(0.78 0.03 150);
+    --dash:oklch(0.74 0.02 150);
+    --g1:oklch(0.75 0.05 150);
+    --g2:oklch(0.71 0.09 152);
+    --g3:oklch(0.62 0.12 150);
+    --g4:oklch(0.53 0.13 150);
+    /* globe. The canvas can't read a var itself, so initGlobe resolves these
+       once per theme; the two *-base tokens are coordinates without an alpha,
+       because their alpha is computed per frame from the limb fade. */
+    --globe-sea:oklch(0.955 0.022 190);
+    --globe-grid:oklch(0.87 0.03 195);
+    --globe-land:oklch(0.885 0.055 152);
+    --globe-land-line:oklch(0.79 0.06 155);
+    --globe-rim:oklch(0.82 0.05 175);
+    --globe-dot:oklch(0.74 0.07 155);
+    --globe-dot-on:oklch(0.58 0.14 150);
+    --globe-ring:oklch(0.62 0.13 150 / 0.5);
+    --globe-halo-base:0.985 0.008 150;
+    --globe-label-base:0.34 0.09 150;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --bg:oklch(0.19 0.018 150);
+    --bg-glass:oklch(0.19 0.018 150 / 0.82);
+    --bg-glass-hdr:oklch(0.19 0.018 150 / 0.76);
+    --surface:oklch(0.235 0.018 152);
+    --surface-2:oklch(0.245 0.02 152);
+    --surface-3:oklch(0.26 0.022 150);
+    --hover:oklch(0.3 0.03 150);
+    --accent-soft:oklch(0.3 0.045 150);
+    --border:oklch(0.32 0.02 150);
+    --border-soft:oklch(0.29 0.018 150);
+    --border-accent-soft:oklch(0.36 0.04 150);
+    --border-strong:oklch(0.38 0.025 150);
+    --border-strong-2:oklch(0.42 0.03 150);
+    --border-pill:oklch(0.45 0.08 150);
+    --border-hover:oklch(0.55 0.09 150);
+    --flag-bg:oklch(0.35 0.012 150);
+    --flag-edge:oklch(1 0 0 / 0.18);
+    --ink-1:oklch(0.97 0.012 145);
+    --ink-2:oklch(0.95 0.012 145);
+    --ink-3:oklch(0.92 0.012 148);
+    --ink-4:oklch(0.88 0.014 148);
+    --ink-5:oklch(0.84 0.016 150);
+    --ink-6:oklch(0.78 0.016 150);
+    --ink-7:oklch(0.72 0.016 150);
+    --ink-8:oklch(0.64 0.02 150);
+    --ink-9:oklch(0.56 0.02 150);
+    --ac-deep:oklch(0.82 0.13 150);
+    --ac-ink:oklch(0.78 0.13 150);
+    --ac:oklch(0.74 0.14 150);
+    --ac-mid:oklch(0.7 0.14 150);
+    --ac-hi:oklch(0.68 0.15 150);
+    --ac-dot:oklch(0.7 0.15 150);
+    --ac-ring:oklch(0.7 0.15 150 / 0.2);
+    --btn-bg:oklch(0.9 0.05 150);
+    --btn-fg:oklch(0.2 0.03 150);
+    --toast-bg:oklch(0.93 0.04 150);
+    --sel-bg:oklch(0.55 0.12 145);
+    --sel-fg:oklch(0.97 0.02 150);
+    --prog-1:oklch(0.72 0.14 150);
+    --prog-2:oklch(0.62 0.13 165);
+    --blob-1:oklch(0.5 0.13 148 / 0.3);
+    --blob-2:oklch(0.46 0.1 175 / 0.28);
+    --blob-3:oklch(0.5 0.12 150 / 0.22);
+    --grid:oklch(0.8 0.05 150 / 0.05);
+    --shadow-card:oklch(0 0 0 / 0.3);
+    --shadow-menu:oklch(0 0 0 / 0.5);
+    --shadow-toast:oklch(0 0 0 / 0.55);
+    --edu:oklch(0.62 0.11 208);
+    --edu-text:oklch(0.72 0.09 208);
+    --edu-axis:oklch(0.6 0.1 205);
+    --edu-bar-1:oklch(0.6 0.1 205);
+    --edu-bar-2:oklch(0.52 0.11 210);
+    --vol:oklch(0.7 0.14 62);
+    --vol-text:oklch(0.78 0.11 62);
+    --proj:oklch(0.9 0.2 110);
+    --proj-title:oklch(0.86 0.07 300);
+    --proj-text:oklch(0.74 0.1 300);
+    --proj-hair:oklch(0.36 0.04 300);
+    --proj-hair-slope:oklch(0.45 0.07 300);
+    --hair:oklch(0.36 0.02 150);
+    --hair-slope:oklch(0.45 0.03 150);
+    --dash:oklch(0.42 0.02 150);
+    /* the ramp runs the other way in the dark: dim to bright is still early to
+       late, but brightness is what reads as "closer" against a dark page */
+    --g1:oklch(0.4 0.05 150);
+    --g2:oklch(0.5 0.09 152);
+    --g3:oklch(0.6 0.12 150);
+    --g4:oklch(0.7 0.14 150);
+    --globe-sea:oklch(0.225 0.025 205);
+    --globe-grid:oklch(0.285 0.02 200);
+    --globe-land:oklch(0.285 0.04 152);
+    --globe-land-line:oklch(0.37 0.05 155);
+    --globe-rim:oklch(0.35 0.05 175);
+    --globe-dot:oklch(0.46 0.06 155);
+    --globe-dot-on:oklch(0.78 0.15 150);
+    --globe-ring:oklch(0.7 0.13 150 / 0.5);
+    --globe-halo-base:0.2 0.02 150;
+    --globe-label-base:0.9 0.06 150;
+    color-scheme:dark;
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-  body{background:oklch(0.981 0.012 138);color:oklch(0.26 0.02 150);font-family:'Hanken Grotesk',system-ui,sans-serif;line-height:1.5;overflow-x:hidden}
-  a{color:oklch(0.5 0.11 150);text-decoration:none}
-  a:hover{color:oklch(0.42 0.12 150)}
-  ::selection{background:oklch(0.82 0.09 145);color:oklch(0.22 0.03 150)}
+  /* The logos are dark artwork on transparent, multiplied onto a light page. In
+     the dark they'd disappear, so they keep their own light plate instead of
+     being inverted — a recoloured client logo is worse than a padded one. */
+  :root[data-theme="dark"] image-slot{mix-blend-mode:normal !important;background:oklch(0.96 0.008 145);border-radius:8px;padding:3px 6px}
+  /* Only one of the two icons is ever shown, so the button needs no state of
+     its own and survives a re-render of the nav. */
+  :root[data-theme="dark"] [data-theme-icon="dark"],
+  :root:not([data-theme="dark"]) [data-theme-icon="light"]{display:none}
+  body{background:var(--bg);color:var(--ink-3);font-family:'Hanken Grotesk',system-ui,sans-serif;line-height:1.5;overflow-x:hidden}
+  a{color:var(--ac);text-decoration:none}
+  a:hover{color:var(--ac-deep)}
+  ::selection{background:var(--sel-bg);color:var(--sel-fg)}
   @keyframes floatA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(28px,-34px) scale(1.08)}}
   @keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,26px) scale(1.12)}}
   @keyframes bob{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(9px);opacity:1}}
@@ -62,45 +282,51 @@
 </helmet>
 
 <div style="position:fixed;top:0;left:0;height:3px;width:100%;z-index:60;background:transparent;pointer-events:none">
-  <div id="cv-progress" style="height:100%;width:100%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,oklch(0.62 0.12 150),oklch(0.52 0.12 165));transition:transform .1s linear"></div>
+  <div id="cv-progress" style="height:100%;width:100%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,var(--prog-1),var(--prog-2));transition:transform .1s linear"></div>
 </div>
 
 <div id="globe-layer" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden">
   <canvas id="globe-canvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.2s ease"></canvas>
 </div>
-<div id="globe-place" style="position:fixed;left:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.06em;color:oklch(0.44 0.06 155);opacity:0;transition:opacity .6s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:oklch(0.981 0.012 138 / 0.82);backdrop-filter:blur(6px);border:1px solid oklch(0.9 0.015 150)">
-  <span style="width:7px;height:7px;border-radius:50%;background:oklch(0.6 0.13 150);box-shadow:0 0 0 4px oklch(0.6 0.13 150 / 0.16)"></span>
+<div id="globe-place" style="position:fixed;left:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.06em;color:var(--ink-7);opacity:0;transition:opacity .6s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:var(--bg-glass);backdrop-filter:blur(6px);border:1px solid var(--border)">
+  <span style="width:7px;height:7px;border-radius:50%;background:var(--ac-dot);box-shadow:0 0 0 4px var(--ac-ring)"></span>
   <span id="globe-place-name">València</span>
 </div>
-<div id="globe-spin" style="position:fixed;right:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;color:oklch(0.48 0.05 155);opacity:0;transition:opacity .7s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:oklch(0.981 0.012 138 / 0.82);backdrop-filter:blur(6px);border:1px solid oklch(0.9 0.015 150);animation:spinhint 3.4s ease-in-out infinite">
+<div id="globe-spin" style="position:fixed;right:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;color:var(--ink-8);opacity:0;transition:opacity .7s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:var(--bg-glass);backdrop-filter:blur(6px);border:1px solid var(--border);animation:spinhint 3.4s ease-in-out infinite">
   <span style="animation:spinarrowL 3.4s ease-in-out infinite">←</span>
   <span>{{ t.hero.spin }}</span>
   <span style="animation:spinarrowR 3.4s ease-in-out infinite">→</span>
 </div>
 
-<header style="position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:blur(14px);background:oklch(0.981 0.012 138 / 0.72);border-bottom:1px solid oklch(0.9 0.012 150)">
+<header style="position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:blur(14px);background:var(--bg-glass-hdr);border-bottom:1px solid var(--border)">
   <nav style="max-width:1120px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px">
-    <a href="#top" data-nav="top" style="font-family:'Bricolage Grotesque';font-weight:600;font-size:16px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);display:flex;align-items:center;gap:9px">
-      <span style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.13 150);box-shadow:0 0 0 4px oklch(0.58 0.13 150 / 0.16)"></span>
+    <a href="#top" data-nav="top" style="font-family:'Bricolage Grotesque';font-weight:600;font-size:16px;letter-spacing:-.01em;color:var(--ink-3);display:flex;align-items:center;gap:9px">
+      <span style="width:9px;height:9px;border-radius:50%;background:var(--ac-dot);box-shadow:0 0 0 4px var(--ac-ring)"></span>
       Vincent Rizzo
     </a>
     <div style="display:flex;align-items:center;gap:22px;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em">
-      <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
-      <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
-      <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
-      <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="color:oklch(0.5 0.02 150);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
-      <a href="mailto:{{ profile.links.email }}" onClick="{{ onEmail }}" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:oklch(0.28 0.03 150);color:oklch(0.97 0.01 140);font-weight:700">{{ t.nav.contact }}</a>
+      <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
+      <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
+      <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
+      <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
+      <a href="{{ hrefContact }}" onClick="{{ onNavContact }}" data-nav="contact" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:var(--btn-bg);color:var(--btn-fg);font-weight:700">{{ t.nav.contact }}</a>
+      <!-- Wired by the boot script in <head>, not by the component: the palette
+           is CSS-only, so the click needs no state here. -->
+      <button data-theme-toggle="" aria-label="{{ t.nav.theme }}" title="{{ t.nav.theme }}" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:34px;height:31px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-8);transition:all .2s" style-hover="border-color:var(--border-hover);color:var(--ac-ink)">
+        <svg data-theme-icon="light" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"></path></svg>
+        <svg data-theme-icon="dark" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.8 8.8 0 1 0 10.8 10.8z"></path></svg>
+      </button>
       <div data-lang-menu="" style="position:relative;display:flex;align-items:center">
-        <button onClick="{{ onLangToggle }}" aria-label="Language" title="Language" style="cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid oklch(0.85 0.02 150);background:oklch(0.99 0.005 140);font-family:'JetBrains Mono';font-size:12px;color:oklch(0.4 0.04 150);transition:all .2s" style-hover="border-color:oklch(0.68 0.09 150);color:oklch(0.4 0.11 150)">
-          <span style="width:18px;height:12.5px;border-radius:2.5px;overflow:hidden;flex:0 0 auto;box-shadow:inset 0 0 0 1px oklch(0.2 0 0 / 0.16);background:oklch(0.9 0.01 150)"><span style="{{ curFlag }}"></span></span>
+        <button onClick="{{ onLangToggle }}" aria-label="Language" title="Language" style="cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);font-family:'JetBrains Mono';font-size:12px;color:var(--ink-6);transition:all .2s" style-hover="border-color:var(--border-hover);color:var(--ac-ink)">
+          <span style="width:18px;height:12.5px;border-radius:2.5px;overflow:hidden;flex:0 0 auto;box-shadow:inset 0 0 0 1px var(--flag-edge);background:var(--flag-bg)"><span style="{{ curFlag }}"></span></span>
           {{ t.code }}
         </button>
         <sc-if value="{{ langOpen }}" hint-placeholder-val="{{ false }}">
-          <div style="position:absolute;top:calc(100% + 12px);right:0;min-width:186px;padding:6px;border-radius:16px;border:1px solid oklch(0.9 0.015 150);background:oklch(0.995 0.004 140);box-shadow:0 18px 40px oklch(0.4 0.05 150 / 0.12);display:flex;flex-direction:column;gap:2px;z-index:70">
+          <div style="position:absolute;top:calc(100% + 12px);right:0;min-width:186px;padding:6px;border-radius:16px;border:1px solid var(--border);background:var(--surface);box-shadow:0 18px 40px var(--shadow-menu);display:flex;flex-direction:column;gap:2px;z-index:70">
             <sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
-              <button onClick="{{ l.onPick }}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:10px 12px;border:0;border-radius:11px;background:transparent;font-family:'Hanken Grotesk';font-size:14.5px;color:oklch(0.3 0.03 150);text-align:left;transition:background .18s" style-hover="background:oklch(0.95 0.02 148)">
-                <span style="display:inline-flex;align-items:center;gap:9px"><span style="font-family:'JetBrains Mono';font-size:10px;color:oklch(0.55 0.11 150)">{{ l.mark }}</span><span style="width:20px;height:14px;border-radius:2.5px;overflow:hidden;flex:0 0 auto;box-shadow:inset 0 0 0 1px oklch(0.2 0 0 / 0.16);background:oklch(0.9 0.01 150)"><span style="{{ l.flag }}"></span></span>{{ l.label }}</span>
-                <span style="font-family:'JetBrains Mono';font-size:11px;color:oklch(0.6 0.03 150)">{{ l.code }}</span>
+              <button onClick="{{ l.onPick }}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:10px 12px;border:0;border-radius:11px;background:transparent;font-family:'Hanken Grotesk';font-size:14.5px;color:var(--ink-4);text-align:left;transition:background .18s" style-hover="background:var(--hover)">
+                <span style="display:inline-flex;align-items:center;gap:9px"><span style="font-family:'JetBrains Mono';font-size:10px;color:var(--ac-mid)">{{ l.mark }}</span><span style="width:20px;height:14px;border-radius:2.5px;overflow:hidden;flex:0 0 auto;box-shadow:inset 0 0 0 1px var(--flag-edge);background:var(--flag-bg)"><span style="{{ l.flag }}"></span></span>{{ l.label }}</span>
+                <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--ink-9)">{{ l.code }}</span>
               </button>
             </sc-for>
           </div>
@@ -113,88 +339,91 @@
 <main id="top" style="position:relative;z-index:1">
 
   <!-- HERO -->
-  <section style="position:relative;min-height:100vh;display:flex;align-items:center;padding:150px 32px 90px;overflow:hidden">
-    <div data-parallax="0.16" style="position:absolute;top:-8%;right:-6%;width:620px;height:620px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,oklch(0.86 0.11 148 / 0.55),transparent 42%);filter:blur(8px);animation:floatA 16s ease-in-out infinite"></div></div>
-    <div data-parallax="0.28" style="position:absolute;bottom:-14%;left:-8%;width:520px;height:520px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,oklch(0.83 0.09 175 / 0.5),transparent 66%);filter:blur(8px);animation:floatB 19s ease-in-out infinite"></div></div>
-    <div style="position:absolute;inset:0;background-image:linear-gradient(oklch(0.5 0.05 150 / 0.05) 1px,transparent 1px),linear-gradient(90deg,oklch(0.5 0.05 150 / 0.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 30% 40%,black,transparent 72%);animation:gridpan 26s linear infinite;z-index:0"></div>
+  <section style="position:relative;min-height:100vh;display:flex;align-items:center;padding:150px 32px 90px;overflow-x:hidden">
+    <div data-parallax="0.16" style="position:absolute;top:-8%;right:-6%;width:620px;height:620px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--blob-1),transparent 42%);filter:blur(8px);animation:floatA 16s ease-in-out infinite"></div></div>
+    <div data-parallax="0.28" style="position:absolute;bottom:8%;left:-8%;width:520px;height:520px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--blob-2),transparent 38%);filter:blur(8px);animation:floatB 19s ease-in-out infinite"></div></div>
+    <div style="position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 30% 40%,black,transparent 72%);animation:gridpan 26s linear infinite;z-index:0"></div>
 
     <div style="position:relative;z-index:2;max-width:1120px;margin:0 auto;width:100%">
-      <div data-reveal="" data-i="0" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono';font-size:13px;letter-spacing:.04em;color:oklch(0.46 0.09 150);margin-bottom:28px">
-        <span style="width:22px;height:1px;background:oklch(0.55 0.1 150)"></span>
+      <div data-reveal="" data-i="0" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono';font-size:13px;letter-spacing:.04em;color:var(--ac-ink);margin-bottom:28px">
+        <span style="width:22px;height:1px;background:var(--ac-mid)"></span>
         {{ t.hero.loc }} · {{ t.hero.pron }}
       </div>
       <!-- The name doubles as a point cloud: initNameCloud samples the rendered
            text off-screen, turns the real glyphs transparent and draws the dots
            on the canvas. Without JS (or with reduced motion / no fine pointer)
            the text below stays as it is and the canvas stays empty. -->
-      <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);position:relative;font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">
+      <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);position:relative;font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:var(--ink-1);text-wrap:balance">
         <span data-name-ink="">Vincent<br>Rizzo</span>
         <canvas data-name-cloud="" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas>
       </h1>
       <div data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:14px">
-        <span style="font-family:'Bricolage Grotesque';font-weight:500;font-size:clamp(19px,2.4vw,26px);color:oklch(0.34 0.04 152)">{{ t.hero.title }}</span>
-        <span style="padding:5px 13px;border-radius:999px;border:1px solid oklch(0.75 0.08 150);font-family:'JetBrains Mono';font-size:12px;color:oklch(0.44 0.1 150);background:oklch(0.94 0.03 148)">{{ t.hero.tag }}</span>
+        <span style="font-family:'Bricolage Grotesque';font-weight:500;font-size:clamp(19px,2.4vw,26px);color:var(--ink-5)">{{ t.hero.title }}</span>
+        <span style="padding:5px 13px;border-radius:999px;border:1px solid var(--border-pill);font-family:'JetBrains Mono';font-size:12px;color:var(--ac-ink);background:var(--accent-soft)">{{ t.hero.tag }}</span>
       </div>
-      <p data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:32px;max-width:640px;font-size:clamp(17px,1.9vw,21px);line-height:1.6;color:oklch(0.4 0.02 150);text-wrap:pretty">{{ t.hero.summary }}</p>
+      <p data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:32px;max-width:640px;font-size:clamp(17px,1.9vw,21px);line-height:1.6;color:var(--ink-6);text-wrap:pretty">{{ t.hero.summary }}</p>
       <div data-reveal="" data-i="4" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:40px;display:flex;flex-wrap:wrap;gap:12px;font-family:'JetBrains Mono';font-size:13px">
-        <a href="mailto:{{ profile.links.email }}" onClick="{{ onEmail }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;background:oklch(0.28 0.03 150);color:oklch(0.97 0.01 140);font-weight:700">{{ t.hero.email }} ↗</a>
-        <a href="{{ profile.links.linkedin }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid oklch(0.8 0.03 150);background:oklch(0.99 0.005 140)"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"></path></svg>LinkedIn ↗</a>
-        <a href="{{ profile.links.github }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid oklch(0.8 0.03 150);background:oklch(0.99 0.005 140)"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.05-.02-2.06-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"></path></svg>GitHub ↗</a>
+        <div style="display:inline-flex;align-items:center;border-radius:999px;background:var(--btn-bg);color:var(--btn-fg);font-weight:700">
+          <a href="mailto:{{ profile.links.email }}" style="display:inline-flex;align-items:center;padding:11px 8px 11px 20px;color:inherit">{{ t.hero.email }} ↗</a>
+          <button type="button" onClick="{{ onCopyEmail }}" aria-label="{{ t.ct.copy }}" title="{{ t.ct.copy }}" style="cursor:pointer;background:none;border:0;display:inline-flex;align-items:center;padding:11px 20px 11px 8px;color:inherit"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+        </div>
+        <a href="{{ profile.links.linkedin }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid var(--border-strong-2);background:var(--surface-2)"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"></path></svg>LinkedIn ↗</a>
+        <a href="{{ profile.links.github }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:1px solid var(--border-strong-2);background:var(--surface-2)"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.05-.02-2.06-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"></path></svg>GitHub ↗</a>
       </div>
     </div>
-    <div data-scroll-hint="scroll" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:oklch(0.5 0.04 150);animation:bob 2.4s ease-in-out infinite;z-index:40;transition:opacity .4s ease;pointer-events:none">{{ t.hero.scroll }}</div>
+    <div data-scroll-hint="scroll" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:var(--ink-8);animation:bob 2.4s ease-in-out infinite;z-index:40;transition:opacity .4s ease;pointer-events:none">{{ t.hero.scroll }}</div>
   </section>
 
   <!-- ABOUT -->
   <section id="about" style="max-width:1120px;margin:0 auto;padding:110px 32px;position:relative">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:34px"><a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" style="color:inherit">{{ t.about.label }}</a></div>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:34px"><a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" style="color:inherit">{{ t.about.label }}</a></div>
     <div style="display:grid;grid-template-columns:1fr;gap:20px">
-      <p data-reveal="" data-i="0" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:400;font-size:clamp(26px,4vw,44px);line-height:1.25;letter-spacing:-.02em;color:oklch(0.28 0.03 152);text-wrap:pretty;max-width:960px">
-        {{ t.about.h1 }}<span style="color:oklch(0.5 0.12 150)">{{ t.about.hAcc }}</span>{{ t.about.h2 }}
+      <p data-reveal="" data-i="0" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:400;font-size:clamp(26px,4vw,44px);line-height:1.25;letter-spacing:-.02em;color:var(--ink-4);text-wrap:pretty;max-width:960px">
+        {{ t.about.h1 }}<span style="color:var(--ac)">{{ t.about.hAcc }}</span>{{ t.about.h2 }}
       </p>
-      <p data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:680px;font-size:19px;line-height:1.65;color:oklch(0.42 0.02 150);margin-top:8px">{{ t.about.body }}</p>
+      <p data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:680px;font-size:19px;line-height:1.65;color:var(--ink-6);margin-top:8px">{{ t.about.body }}</p>
       <div data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:flex;flex-wrap:wrap;gap:36px;margin-top:24px">
-        <div><div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:40px;color:oklch(0.5 0.12 150);letter-spacing:-.02em">6+</div><div style="font-family:'JetBrains Mono';font-size:12px;color:oklch(0.5 0.03 150);margin-top:2px">{{ t.about.stat }}</div></div>
+        <div><div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:40px;color:var(--ac);letter-spacing:-.02em">6+</div><div style="font-family:'JetBrains Mono';font-size:12px;color:var(--ink-8);margin-top:2px">{{ t.about.stat }}</div></div>
       </div>
     </div>
   </section>
 
   <!-- WORK -->
   <section id="projects" style="max-width:1120px;margin:0 auto;padding:90px 32px;position:relative">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px"><a href="{{ hrefWork }}" onClick="{{ onNavWork }}" style="color:inherit">{{ t.work.label }}</a></div>
-    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:14px">{{ t.work.h }}</h2>
-    <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:620px;font-size:17px;color:oklch(0.46 0.02 150);margin-bottom:48px">{{ t.work.p }}</p>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:14px"><a href="{{ hrefWork }}" onClick="{{ onNavWork }}" style="color:inherit">{{ t.work.label }}</a></div>
+    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:var(--ink-2);margin-bottom:14px">{{ t.work.h }}</h2>
+    <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:620px;font-size:17px;color:var(--ink-7);margin-bottom:48px">{{ t.work.p }}</p>
     <div style="display:flex;flex-direction:column;gap:22px">
       <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
-        <div class="cv-card" data-reveal="" data-i="{{ $index }}" data-project-key="{{ p.key }}" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);border:1px solid oklch(0.9 0.015 150);border-radius:20px;background:oklch(0.995 0.004 140);padding:34px 34px 30px;box-shadow:0 1px 0 oklch(0.5 0.05 150 / 0.03);scroll-margin-top:90px">
+        <div class="cv-card" data-reveal="" data-i="{{ $index }}" data-project-key="{{ p.key }}" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);border:1px solid var(--border);border-radius:20px;background:var(--surface);padding:34px 34px 30px;box-shadow:0 1px 0 var(--shadow-card);scroll-margin-top:90px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px">
-            <div style="font-family:'JetBrains Mono';font-size:12px;letter-spacing:.02em;color:oklch(0.5 0.1 150)">{{ p.tag }}</div>
+            <div style="font-family:'JetBrains Mono';font-size:12px;letter-spacing:.02em;color:var(--ac)">{{ p.tag }}</div>
             <sc-if value="{{ p.showLogo }}" hint-placeholder-val="{{ false }}">
               <image-slot id="{{ p.logoId }}" src="{{ p.logoSrc }}" fit="contain" placeholder="{{ p.logoLabel }}" style="flex:none;height:40px;width:150px;mix-blend-mode:multiply"></image-slot>
             </sc-if>
           </div>
-          <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(22px,2.8vw,30px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);line-height:1.12;max-width:760px">{{ p.title }}</h3>
-          <p style="margin-top:14px;max-width:780px;font-size:16.5px;line-height:1.62;color:oklch(0.42 0.02 150);text-wrap:pretty">{{ p.blurb }}</p>
+          <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(22px,2.8vw,30px);letter-spacing:-.02em;color:var(--ink-2);line-height:1.12;max-width:760px">{{ p.title }}</h3>
+          <p style="margin-top:14px;max-width:780px;font-size:16.5px;line-height:1.62;color:var(--ink-6);text-wrap:pretty">{{ p.blurb }}</p>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px">
             <sc-for list="{{ p.stack }}" as="s" hint-placeholder-count="4">
-              <span style="font-family:'JetBrains Mono';font-size:11.5px;padding:5px 11px;border-radius:6px;background:oklch(0.94 0.03 148);color:oklch(0.42 0.08 150);border:1px solid oklch(0.88 0.03 150)">{{ s }}</span>
+              <span style="font-family:'JetBrains Mono';font-size:11.5px;padding:5px 11px;border-radius:6px;background:var(--accent-soft);color:var(--ac-ink);border:1px solid var(--border-accent-soft)">{{ s }}</span>
             </sc-for>
           </div>
           <sc-if value="{{ p.open }}" hint-placeholder-val="{{ false }}">
-            <ul style="margin-top:24px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:14px;border-top:1px solid oklch(0.92 0.015 150);padding-top:22px">
+            <ul style="margin-top:24px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--border-soft);padding-top:22px">
               <sc-for list="{{ p.bullets }}" as="b" hint-placeholder-count="3">
-                <li style="display:flex;gap:12px;font-size:15.5px;line-height:1.6;color:oklch(0.4 0.02 150);max-width:820px">
-                  <span style="flex:none;margin-top:9px;width:6px;height:6px;border-radius:50%;background:oklch(0.6 0.12 150)"></span>
+                <li style="display:flex;gap:12px;font-size:15.5px;line-height:1.6;color:var(--ink-6);max-width:820px">
+                  <span style="flex:none;margin-top:9px;width:6px;height:6px;border-radius:50%;background:var(--ac-hi)"></span>
                   <span style="text-wrap:pretty">{{ b }}</span>
                 </li>
               </sc-for>
             </ul>
           </sc-if>
           <div style="display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin-top:24px">
-            <button onClick="{{ p.onToggle }}" style="cursor:pointer;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em;padding:9px 16px;border-radius:999px;border:1px solid oklch(0.55 0.1 150);background:transparent;color:oklch(0.44 0.11 150);transition:all .2s" style-hover="background:oklch(0.94 0.03 148)">{{ p.toggleLabel }}</button>
-            <a href="{{ p.timelineHref }}" onClick="{{ p.onTimelineLink }}" style="font-family:'JetBrains Mono';font-size:12.5px;color:oklch(0.5 0.11 150)">{{ t.work.timelineLink }} ↗</a>
+            <button onClick="{{ p.onToggle }}" style="cursor:pointer;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em;padding:9px 16px;border-radius:999px;border:1px solid var(--ac-mid);background:transparent;color:var(--ac-ink);transition:all .2s" style-hover="background:var(--accent-soft)">{{ p.toggleLabel }}</button>
+            <a href="{{ p.timelineHref }}" onClick="{{ p.onTimelineLink }}" style="font-family:'JetBrains Mono';font-size:12.5px;color:var(--ac)">{{ t.work.timelineLink }} ↗</a>
             <sc-if value="{{ p.link }}" hint-placeholder-val="{{ false }}">
-              <a href="{{ p.link }}" target="_blank" style="font-family:'JetBrains Mono';font-size:12.5px;color:oklch(0.5 0.11 150)">{{ p.linkLabel }} ↗</a>
+              <a href="{{ p.link }}" target="_blank" style="font-family:'JetBrains Mono';font-size:12.5px;color:var(--ac)">{{ p.linkLabel }} ↗</a>
             </sc-if>
           </div>
         </div>
@@ -204,17 +433,17 @@
 
   <!-- TOOLKIT + SKILLS -->
   <section id="skills" style="max-width:1120px;margin:0 auto;padding:90px 32px 40px">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px"><a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" style="color:inherit">{{ t.tk.label }}</a></div>
-    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:52px">{{ t.tk.h }}</h2>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:14px"><a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" style="color:inherit">{{ t.tk.label }}</a></div>
+    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:var(--ink-2);margin-bottom:52px">{{ t.tk.h }}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:44px">
       <sc-for list="{{ toolkit }}" as="grp" hint-placeholder-count="2">
         <div data-reveal="" data-i="{{ $index }}" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)">
-          <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;color:oklch(0.5 0.12 150);margin-bottom:20px;display:flex;align-items:center;gap:10px">
-            <span style="width:16px;height:2px;background:oklch(0.6 0.12 150)"></span>{{ grp.group }}
+          <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;color:var(--ac);margin-bottom:20px;display:flex;align-items:center;gap:10px">
+            <span style="width:16px;height:2px;background:var(--ac-hi)"></span>{{ grp.group }}
           </h3>
           <div style="display:flex;flex-wrap:wrap;gap:10px">
             <sc-for list="{{ grp.items }}" as="it" hint-placeholder-count="6">
-              <span style="font-size:14.5px;padding:9px 15px;border-radius:10px;background:oklch(0.97 0.012 145);color:oklch(0.34 0.03 150);border:1px solid oklch(0.91 0.015 150)">{{ it }}</span>
+              <span style="font-size:14.5px;padding:9px 15px;border-radius:10px;background:var(--surface-3);color:var(--ink-5);border:1px solid var(--border-soft)">{{ it }}</span>
             </sc-for>
           </div>
         </div>
@@ -223,29 +452,29 @@
   </section>
 
   <section style="max-width:1120px;margin:0 auto;padding:70px 32px 110px">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px">{{ t.sk.label }}</div>
-    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:48px">{{ t.sk.h }}</h2>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:14px">{{ t.sk.label }}</div>
+    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:var(--ink-2);margin-bottom:48px">{{ t.sk.h }}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:44px">
       <div data-reveal="" data-i="0" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)">
-        <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;color:oklch(0.5 0.12 150);margin-bottom:20px;display:flex;align-items:center;gap:10px">
-          <span style="width:16px;height:2px;background:oklch(0.6 0.12 150)"></span>{{ t.sk.langs }}
+        <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;color:var(--ac);margin-bottom:20px;display:flex;align-items:center;gap:10px">
+          <span style="width:16px;height:2px;background:var(--ac-hi)"></span>{{ t.sk.langs }}
         </h3>
         <div style="display:flex;flex-direction:column;gap:12px;max-width:420px">
           <sc-for list="{{ languages }}" as="lg" hint-placeholder-count="4">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:11px;border-bottom:1px solid oklch(0.93 0.012 150)">
-              <span style="display:inline-flex;align-items:center;gap:9px;font-size:16.5px;color:oklch(0.3 0.03 150)"><span style="width:20px;height:14px;border-radius:2.5px;overflow:hidden;flex:0 0 auto;box-shadow:inset 0 0 0 1px oklch(0.2 0 0 / 0.16);background:oklch(0.9 0.01 150)"><span style="{{ lg.flag }}"></span></span>{{ lg.name }}</span>
-              <span style="font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.03em;color:oklch(0.52 0.08 150);text-align:right">{{ lg.level }}</span>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:11px;border-bottom:1px solid var(--border-soft)">
+              <span style="display:inline-flex;align-items:center;gap:9px;font-size:16.5px;color:var(--ink-4)"><span style="width:20px;height:14px;border-radius:2.5px;overflow:hidden;flex:0 0 auto;box-shadow:inset 0 0 0 1px var(--flag-edge);background:var(--flag-bg)"><span style="{{ lg.flag }}"></span></span>{{ lg.name }}</span>
+              <span style="font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.03em;color:var(--ac);text-align:right">{{ lg.level }}</span>
             </div>
           </sc-for>
         </div>
       </div>
       <div data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)">
-        <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;color:oklch(0.5 0.12 150);margin-bottom:20px;display:flex;align-items:center;gap:10px">
-          <span style="width:16px;height:2px;background:oklch(0.6 0.12 150)"></span>{{ t.sk.beyond }}
+        <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;color:var(--ac);margin-bottom:20px;display:flex;align-items:center;gap:10px">
+          <span style="width:16px;height:2px;background:var(--ac-hi)"></span>{{ t.sk.beyond }}
         </h3>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
           <sc-for list="{{ beyond }}" as="bd" hint-placeholder-count="4">
-            <span style="font-size:14.5px;padding:9px 15px;border-radius:10px;background:oklch(0.97 0.012 145);color:oklch(0.34 0.03 150);border:1px solid oklch(0.91 0.015 150)">{{ bd }}</span>
+            <span style="font-size:14.5px;padding:9px 15px;border-radius:10px;background:var(--surface-3);color:var(--ink-5);border:1px solid var(--border-soft)">{{ bd }}</span>
           </sc-for>
         </div>
       </div>
@@ -254,16 +483,16 @@
 
   <!-- TIMELINE -->
   <section id="experience" style="max-width:1120px;margin:0 auto;padding:90px 32px;position:relative">
-    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:14px"><a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" style="color:inherit">{{ t.tl.label }}</a></div>
-    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:oklch(0.24 0.02 150);margin-bottom:14px">{{ t.tl.h }}</h2>
-    <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:660px;font-size:17px;line-height:1.6;color:oklch(0.46 0.02 150);margin-bottom:22px">{{ t.tl.p }}</p>
-    <div data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:flex;gap:24px;flex-wrap:wrap;font-family:'JetBrains Mono';font-size:12px;color:oklch(0.48 0.03 150);margin-bottom:46px">
-      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.63 0.1 208)"></span>{{ t.tl.eduLegend }}</span>
-      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.55 0.13 150)"></span>{{ t.tl.expLegend }}</span>
-      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:oklch(0.72 0.14 62)"></span>{{ t.tl.volLegend }}</span>
-      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:14px;border-radius:4px;background:oklch(0.95 0.25 110)"></span>{{ t.tl.projLegend }}</span>
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:14px"><a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" style="color:inherit">{{ t.tl.label }}</a></div>
+    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:var(--ink-2);margin-bottom:14px">{{ t.tl.h }}</h2>
+    <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:660px;font-size:17px;line-height:1.6;color:var(--ink-7);margin-bottom:22px">{{ t.tl.p }}</p>
+    <div data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);display:flex;gap:24px;flex-wrap:wrap;font-family:'JetBrains Mono';font-size:12px;color:var(--ink-8);margin-bottom:46px">
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:var(--edu)"></span>{{ t.tl.eduLegend }}</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:var(--ac-mid)"></span>{{ t.tl.expLegend }}</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;background:var(--vol)"></span>{{ t.tl.volLegend }}</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:14px;border-radius:4px;background:var(--proj)"></span>{{ t.tl.projLegend }}</span>
       <sc-if value="{{ tl.hasFolds }}" hint-placeholder-val="{{ true }}">
-        <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:0;border-top:1px dashed oklch(0.74 0.02 150)"></span>{{ t.tl.foldLegend }}</span>
+        <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:0;border-top:1px dashed var(--dash)"></span>{{ t.tl.foldLegend }}</span>
       </sc-if>
     </div>
 
@@ -272,12 +501,12 @@
 
         <sc-if value="{{ tl.showGrid }}" hint-placeholder-val="{{ true }}">
           <sc-for list="{{ tl.years }}" as="yr" hint-placeholder-count="13">
-            <div style="position:absolute;left:0;width:{{ tl.gridW }};top:{{ yr.topPx }}px;height:1px;background:oklch(0.91 0.012 150);z-index:0"></div>
-            <div style="position:absolute;left:{{ tl.yearLeft }};top:{{ yr.topPx }}px;transform:{{ tl.yearTf }};font-family:'JetBrains Mono';font-size:11px;color:oklch(0.56 0.03 150);background:oklch(0.981 0.012 138);padding:2px 8px;border-radius:6px;z-index:6">{{ yr.label }}</div>
+            <div style="position:absolute;left:0;width:{{ tl.gridW }};top:{{ yr.topPx }}px;height:1px;background:var(--border-soft);z-index:0"></div>
+            <div style="position:absolute;left:{{ tl.yearLeft }};top:{{ yr.topPx }}px;transform:{{ tl.yearTf }};font-family:'JetBrains Mono';font-size:11px;color:var(--ink-8);background:var(--bg);padding:2px 8px;border-radius:6px;z-index:6">{{ yr.label }}</div>
           </sc-for>
         </sc-if>
 
-        <div data-reveal="" style="opacity:1;transform:scaleY(0);transform-origin:top;transition:transform 1.6s cubic-bezier(.22,.61,.36,1);position:absolute;left:{{ tl.axisLeft }};margin-left:{{ tl.axisML }};top:6px;bottom:6px;width:2px;background:linear-gradient(oklch(0.68 0.09 205),oklch(0.58 0.12 150));z-index:1"></div>
+        <div data-reveal="" style="opacity:1;transform:scaleY(0);transform-origin:top;transition:transform 1.6s cubic-bezier(.22,.61,.36,1);position:absolute;left:{{ tl.axisLeft }};margin-left:{{ tl.axisML }};top:6px;bottom:6px;width:2px;background:linear-gradient(var(--edu-axis),var(--ac-mid));z-index:1"></div>
 
         <sc-for list="{{ tl.bars }}" as="e" hint-placeholder-count="10">
           <div data-reveal="" data-i="{{ e.i }}" style="opacity:1;transform:scaleY(0);transform-origin:top;transition:transform 1.1s cubic-bezier(.22,.61,.36,1);position:absolute;top:{{ e.topPx }}px;height:{{ e.hPx }}px;left:{{ e.barLeft }}px;width:{{ e.bw }}px;border-radius:9px;background:{{ e.color }};z-index:2"></div>
@@ -287,14 +516,14 @@
         </sc-for>
 
         <sc-for list="{{ tl.marks }}" as="m" hint-placeholder-count="7">
-          <div style="position:absolute;top:{{ m.topPx }}px;left:{{ m.leftPx }}px;width:13px;height:13px;border-radius:50%;background:oklch(0.981 0.012 138);border:3px solid {{ m.color }};transform:translate(-50%,-50%);z-index:5;box-shadow:0 0 0 4px oklch(0.981 0.012 138)"></div>
+          <div style="position:absolute;top:{{ m.topPx }}px;left:{{ m.leftPx }}px;width:13px;height:13px;border-radius:50%;background:var(--bg);border:3px solid {{ m.color }};transform:translate(-50%,-50%);z-index:5;box-shadow:0 0 0 4px var(--bg)"></div>
         </sc-for>
 
         <sc-for list="{{ tl.skips }}" as="s" hint-placeholder-count="3">
           <div style="position:absolute;left:0;right:0;top:{{ s.topPx }}px;height:{{ s.hPx }}px;z-index:3;pointer-events:none">
-            <div style="position:absolute;left:0;right:0;top:0;border-top:1px dashed oklch(0.85 0.02 150)"></div>
-            <div style="position:absolute;left:0;right:0;bottom:0;border-top:1px dashed oklch(0.85 0.02 150)"></div>
-            <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.06em;color:oklch(0.6 0.03 150);background:oklch(0.981 0.012 138);padding:3px 9px;border-radius:999px;border:1px solid oklch(0.91 0.015 150)">
+            <div style="position:absolute;left:0;right:0;top:0;border-top:1px dashed var(--border-strong)"></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;border-top:1px dashed var(--border-strong)"></div>
+            <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.06em;color:var(--ink-9);background:var(--bg);padding:3px 9px;border-radius:999px;border:1px solid var(--border-soft)">
               <span style="letter-spacing:.14em">⋯</span>{{ s.label }}
             </div>
           </div>
@@ -309,9 +538,9 @@
                   <image-slot id="{{ e.logoId }}" src="{{ e.logoSrc }}" fit="contain" placeholder="{{ e.name }}" style="height:40px;width:170px;mix-blend-mode:multiply"></image-slot>
                 </div>
               </sc-if>
-              <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);line-height:1.15">{{ e.name }}</h3>
-              <div style="font-size:14.5px;line-height:1.4;color:oklch(0.44 0.03 150);margin-top:4px;text-wrap:pretty">{{ e.sub }}</div>
-              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:oklch(0.5 0.08 208);margin-top:7px">{{ e.meta }} · {{ e.place }}</div>
+              <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:var(--ink-3);line-height:1.15">{{ e.name }}</h3>
+              <div style="font-size:14.5px;line-height:1.4;color:var(--ink-7);margin-top:4px;text-wrap:pretty">{{ e.sub }}</div>
+              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:var(--edu-text);margin-top:7px">{{ e.meta }} · {{ e.place }}</div>
             </div>
           </div>
         </sc-for>
@@ -326,11 +555,11 @@
                 </div>
               </sc-if>
               <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px">
-                <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);line-height:1.15">{{ e.role }}</h3>
-                <span style="font-family:'Bricolage Grotesque';font-weight:600;font-size:16px;color:oklch(0.52 0.12 150)">{{ e.org }}</span>
+                <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:var(--ink-3);line-height:1.15">{{ e.role }}</h3>
+                <span style="font-family:'Bricolage Grotesque';font-weight:600;font-size:16px;color:var(--ac)">{{ e.org }}</span>
               </div>
-              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:oklch(0.5 0.08 150);margin-top:6px">{{ e.meta }} · {{ e.place }}</div>
-              <p style="font-size:14px;line-height:1.55;color:oklch(0.44 0.02 150);margin-top:8px;text-wrap:pretty">{{ e.note }}</p>
+              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:var(--ac);margin-top:6px">{{ e.meta }} · {{ e.place }}</div>
+              <p style="font-size:14px;line-height:1.55;color:var(--ink-7);margin-top:8px;text-wrap:pretty">{{ e.note }}</p>
             </div>
           </div>
         </sc-for>
@@ -339,9 +568,9 @@
           <div style="position:absolute;top:{{ e.leaderTop }}px;left:{{ e.leaderLeft }}px;width:{{ e.leaderW }}px;height:1px;background:{{ e.leaderCol }};transform:{{ e.leaderTf }};transform-origin:0 50%;z-index:1"></div>
           <div data-geo-i="{{ e.geoI }}" data-card-h="{{ e.ck }}" style="position:absolute;top:{{ e.cardY }}px;left:{{ e.cardLeft }}px;width:{{ e.cardW }}px;transform:translateY(-50%);text-align:left;z-index:4">
             <div data-reveal="" data-i="{{ e.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
-              <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:oklch(0.26 0.02 150);line-height:1.15">{{ e.name }}</h3>
-              <div style="font-size:14.5px;line-height:1.4;color:oklch(0.44 0.03 150);margin-top:4px;text-wrap:pretty">{{ e.sub }}</div>
-              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:oklch(0.52 0.11 62);margin-top:7px">{{ e.meta }} · {{ e.place }}</div>
+              <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:19px;letter-spacing:-.01em;color:var(--ink-3);line-height:1.15">{{ e.name }}</h3>
+              <div style="font-size:14.5px;line-height:1.4;color:var(--ink-7);margin-top:4px;text-wrap:pretty">{{ e.sub }}</div>
+              <div style="font-family:'JetBrains Mono';font-size:11.5px;color:var(--vol-text);margin-top:7px">{{ e.meta }} · {{ e.place }}</div>
             </div>
           </div>
         </sc-for>
@@ -355,9 +584,9 @@
                   <image-slot id="{{ p.logoId }}" src="{{ p.logoSrc }}" fit="contain" placeholder="{{ p.logoLabel }}" style="height:34px;width:150px;mix-blend-mode:multiply"></image-slot>
                 </div>
               </sc-if>
-              <div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:15px;letter-spacing:-.01em;color:oklch(0.34 0.06 300);line-height:1.2;text-wrap:pretty">{{ p.title }}</div>
-              <div style="font-family:'JetBrains Mono';font-size:10.5px;color:oklch(0.54 0.1 300);margin-top:4px">{{ p.meta }}</div>
-              <a href="{{ p.workHref }}" onClick="{{ p.onWorkLink }}" style="display:inline-block;font-family:'JetBrains Mono';font-size:10.5px;color:oklch(0.54 0.1 300);margin-top:4px">{{ t.tl.workLink }} ↗</a>
+              <div style="font-family:'Bricolage Grotesque';font-weight:600;font-size:15px;letter-spacing:-.01em;color:var(--proj-title);line-height:1.2;text-wrap:pretty">{{ p.title }}</div>
+              <div style="font-family:'JetBrains Mono';font-size:10.5px;color:var(--proj-text);margin-top:4px">{{ p.meta }}</div>
+              <a href="{{ p.workHref }}" onClick="{{ p.onWorkLink }}" style="display:inline-block;font-family:'JetBrains Mono';font-size:10.5px;color:var(--proj-text);margin-top:4px">{{ t.tl.workLink }} ↗</a>
             </div>
           </div>
         </sc-for>
@@ -367,25 +596,28 @@
   </section>
 
   <!-- CONTACT -->
-  <section id="contact" style="position:relative;padding:120px 32px 100px;overflow:hidden;margin-top:40px;border-top:1px solid oklch(0.9 0.015 150)">
-    <div data-parallax="0.12" data-base-x="-50%" style="position:absolute;top:-30%;left:50%;transform:translateX(-50%);transition:transform .5s cubic-bezier(.22,.61,.36,1);width:700px;height:500px;z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,oklch(0.86 0.1 150 / 0.4),transparent 68%);filter:blur(6px);animation:floatA 18s ease-in-out infinite"></div></div>
+  <section id="contact" style="position:relative;padding:120px 32px 100px;overflow:hidden;margin-top:40px;border-top:1px solid var(--border)">
+    <div data-parallax="0.12" data-base-x="-50%" style="position:absolute;top:-30%;left:50%;transform:translateX(-50%);transition:transform .5s cubic-bezier(.22,.61,.36,1);width:700px;height:500px;z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,var(--blob-3),transparent 68%);filter:blur(6px);animation:floatA 18s ease-in-out infinite"></div></div>
     <div style="position:relative;z-index:2;max-width:900px;margin:0 auto;text-align:center">
-      <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:oklch(0.5 0.11 150);margin-bottom:22px"><a href="{{ hrefContact }}" onClick="{{ onNavContact }}" style="color:inherit">{{ t.ct.label }}</a></div>
-      <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(34px,6vw,64px);line-height:1.04;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">{{ t.ct.h1 }}<br>{{ t.ct.h2 }}</h2>
-      <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin:24px auto 0;max-width:520px;font-size:18px;color:oklch(0.44 0.02 150)">{{ t.ct.p }}</p>
+      <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:22px"><a href="{{ hrefContact }}" onClick="{{ onNavContact }}" style="color:inherit">{{ t.ct.label }}</a></div>
+      <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(34px,6vw,64px);line-height:1.04;letter-spacing:-.03em;color:var(--ink-1);text-wrap:balance">{{ t.ct.h1 }}<br>{{ t.ct.h2 }}</h2>
+      <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin:24px auto 0;max-width:520px;font-size:18px;color:var(--ink-7)">{{ t.ct.p }}</p>
       <div data-reveal="" data-i="3" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:38px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;font-family:'JetBrains Mono';font-size:14px">
-        <a href="mailto:{{ profile.links.email }}" onClick="{{ onEmail }}" style="display:inline-flex;align-items:center;gap:8px;padding:14px 26px;border-radius:999px;background:oklch(0.28 0.03 150);color:oklch(0.97 0.01 140);font-weight:700">{{ profile.links.email }}</a>
+        <div style="display:inline-flex;align-items:center;border-radius:999px;background:var(--btn-bg);color:var(--btn-fg);font-weight:700">
+          <a href="mailto:{{ profile.links.email }}" style="display:inline-flex;align-items:center;padding:14px 10px 14px 26px;color:inherit">{{ profile.links.email }}</a>
+          <button type="button" onClick="{{ onCopyEmail }}" aria-label="{{ t.ct.copy }}" title="{{ t.ct.copy }}" style="cursor:pointer;background:none;border:0;display:inline-flex;align-items:center;padding:14px 26px 14px 10px;color:inherit"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+        </div>
       </div>
       <div data-reveal="" data-i="4" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:22px;display:flex;flex-wrap:wrap;justify-content:center;gap:22px;font-family:'JetBrains Mono';font-size:13px">
         <a href="{{ profile.links.linkedin }}" target="_blank" style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"></path></svg>LinkedIn ↗</a>
         <a href="{{ profile.links.github }}" target="_blank" style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.05-.02-2.06-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"></path></svg>GitHub ↗</a>
       </div>
-      <div style="margin-top:64px;font-family:'JetBrains Mono';font-size:11.5px;color:oklch(0.6 0.02 150)">{{ t.ct.footer }}</div>
+      <div style="margin-top:64px;font-family:'JetBrains Mono';font-size:11.5px;color:var(--ink-9)">{{ t.ct.footer }}</div>
     </div>
   </section>
 
   <sc-if value="{{ emailCopied }}" hint-placeholder-val="{{ false }}">
-    <div role="status" aria-live="polite" style="position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:200;display:inline-flex;align-items:center;gap:9px;padding:12px 20px;border-radius:999px;background:oklch(0.24 0.03 150);color:oklch(0.97 0.01 140);font-family:'JetBrains Mono';font-size:13px;box-shadow:0 14px 34px oklch(0.3 0.05 150 / 0.28);animation:toastIn .28s cubic-bezier(.22,.61,.36,1)">
+    <div role="status" aria-live="polite" style="position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:200;display:inline-flex;align-items:center;gap:9px;padding:12px 20px;border-radius:999px;background:var(--toast-bg);color:var(--btn-fg);font-family:'JetBrains Mono';font-size:13px;box-shadow:0 14px 34px var(--shadow-toast);animation:toastIn .28s cubic-bezier(.22,.61,.36,1)">
       <span aria-hidden="true">✓</span>{{ emailToast }}
     </div>
   </sc-if>
@@ -458,6 +690,12 @@ class Component extends DCLogic {
       this._copyT = setTimeout(() => { if (!this._dead) this.setState({ emailCopied: false }); }, 2400);
     };
     if (navigator.clipboard) navigator.clipboard.writeText(addr).then(done, () => {});
+  }
+
+  // Canvas can't resolve a custom property, so anything painting on one has to
+  // ask the stylesheet for the value behind the token.
+  cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
   viewportW() {
@@ -620,8 +858,8 @@ class Component extends DCLogic {
       });
       document.querySelectorAll('[data-nav]').forEach(a => {
         const on = a.dataset.nav === cur;
-        if (a.dataset.nav === 'top') return;
-        a.style.color = on ? 'oklch(0.44 0.11 150)' : 'oklch(0.5 0.02 150)';
+        if (a.dataset.nav === 'top' || a.dataset.nav === 'contact') return;
+        a.style.color = on ? 'var(--ac-ink)' : 'var(--ink-8)';
         a.style.opacity = on ? '1' : '0.7';
       });
     };
@@ -685,6 +923,8 @@ class Component extends DCLogic {
     if (this._onNameMove) window.removeEventListener('mousemove', this._onNameMove);
     if (this._onNameLeave) window.removeEventListener('mouseout', this._onNameLeave);
     if (this._onNameResize) window.removeEventListener('resize', this._onNameResize);
+    if (this._onNameTheme) window.removeEventListener('cv-theme', this._onNameTheme);
+    if (this._onGlobeTheme) window.removeEventListener('cv-theme', this._onGlobeTheme);
     if (this._t) clearTimeout(this._t);
     if (this._copyT) clearTimeout(this._copyT);
   }
@@ -721,7 +961,7 @@ class Component extends DCLogic {
     const DAMP = 0.7;   // velocity decay
     const EVAP_EVERY = 1000; // ms between dots that leave for good
     const EVAP_SPEED = 0.1;  // px/frame — a slow drift outwards
-    const INK = 'oklch(0.22 0.02 150)';
+    let inkCol = null;   // resolved lazily, dropped on a theme flip
 
     let pts = [], W = 0, H = 0, dpr = 1, dot = 2, live = true;
     const mouse = { x: -1e5, y: -1e5, on: false };
@@ -804,7 +1044,7 @@ class Component extends DCLogic {
       if (this._dead) return;
 
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = INK;
+      ctx.fillStyle = inkCol || (inkCol = this.cssVar('--ink-1'));
       const half = dot / 2;
       let busy = false;
       for (let i = 0; i < pts.length; i++) {
@@ -844,6 +1084,11 @@ class Component extends DCLogic {
     };
 
     const kick = () => { if (!this._nameRaf && !this._dead) this._nameRaf = requestAnimationFrame(frame); };
+
+    // The loop parks itself once every dot is home, so the flip has to redraw.
+    const onTheme = () => { inkCol = null; kick(); };
+    window.addEventListener('cv-theme', onTheme);
+    this._onNameTheme = onTheme;
 
     this._nameEvap = setInterval(() => {
       if (this._dead || !live) return;
@@ -920,6 +1165,29 @@ class Component extends DCLogic {
     const projection = d3.geoOrthographic().clipAngle(90).precision(0.3);
     const path = d3.geoPath(projection, ctx);
     const ease = t => t * t * (3 - 2 * t);
+
+    // A canvas paints resolved colours, so the globe reads its half of the
+    // palette out of the stylesheet — once per theme, not once per frame. The
+    // two *-base values are coordinates without an alpha: the label and its halo
+    // fade with the distance to the limb, so their alpha is per-frame.
+    let pal = null, repaint = false;
+    const palette = () => pal || (pal = {
+      sea: this.cssVar('--globe-sea'),
+      grid: this.cssVar('--globe-grid'),
+      land: this.cssVar('--globe-land'),
+      landLine: this.cssVar('--globe-land-line'),
+      rim: this.cssVar('--globe-rim'),
+      dot: this.cssVar('--globe-dot'),
+      dotOn: this.cssVar('--globe-dot-on'),
+      ring: this.cssVar('--globe-ring'),
+      halo: this.cssVar('--globe-halo-base'),
+      label: this.cssVar('--globe-label-base'),
+    });
+    // The frame loop skips the draw once the globe has settled, so a theme flip
+    // has to ask for one more pass or the old palette stays on screen.
+    const onTheme = () => { pal = null; repaint = true; };
+    window.addEventListener('cv-theme', onTheme);
+    this._onGlobeTheme = onTheme;
 
     let W = 0, H = 0, dpr = 1;
     // Base radius (whole-earth framing). The frame loop multiplies it by `zoom`
@@ -1109,23 +1377,25 @@ class Component extends DCLogic {
       const zooming = Math.abs(zoomTarget - zoom) > 0.0015;
       if (zooming) zoom += (zoomTarget - zoom) * k(0.05); else zoom = zoomTarget;
 
-      if (settled < 3 || zooming || spinVel || spinOff) {
+      if (repaint || settled < 3 || zooming || spinVel || spinOff) {
+        repaint = false;
+        const pal = palette();
         projection.scale(baseR * zoom);
         projection.rotate([-(cur[0] + spinOff), -cur[1]]);
         ctx.clearRect(0, 0, W, H);
 
         ctx.beginPath(); path({ type: 'Sphere' });
-        ctx.fillStyle = 'oklch(0.955 0.022 190)'; ctx.fill();
+        ctx.fillStyle = pal.sea; ctx.fill();
 
         ctx.beginPath(); path(graticule);
-        ctx.lineWidth = 0.6; ctx.strokeStyle = 'oklch(0.87 0.03 195)'; ctx.stroke();
+        ctx.lineWidth = 0.6; ctx.strokeStyle = pal.grid; ctx.stroke();
 
         ctx.beginPath(); path(land);
-        ctx.fillStyle = 'oklch(0.885 0.055 152)'; ctx.fill();
-        ctx.lineWidth = 0.7; ctx.strokeStyle = 'oklch(0.79 0.06 155)'; ctx.stroke();
+        ctx.fillStyle = pal.land; ctx.fill();
+        ctx.lineWidth = 0.7; ctx.strokeStyle = pal.landLine; ctx.stroke();
 
         ctx.beginPath(); path({ type: 'Sphere' });
-        ctx.lineWidth = 1.2; ctx.strokeStyle = 'oklch(0.82 0.05 175)'; ctx.stroke();
+        ctx.lineWidth = 1.2; ctx.strokeStyle = pal.rim; ctx.stroke();
 
         const center = [-projection.rotate()[0], -projection.rotate()[1]];
         const waypoints = pts || flat();
@@ -1147,10 +1417,10 @@ class Component extends DCLogic {
           if (!xy) return;
           const on = active && key === active.c.join(',');
           ctx.beginPath(); ctx.arc(xy[0], xy[1], on ? 5.5 : 3, 0, 6.2832);
-          ctx.fillStyle = on ? 'oklch(0.58 0.14 150)' : 'oklch(0.74 0.07 155)'; ctx.fill();
+          ctx.fillStyle = on ? pal.dotOn : pal.dot; ctx.fill();
           if (on) {
             ctx.beginPath(); ctx.arc(xy[0], xy[1], 13, 0, 6.2832);
-            ctx.lineWidth = 1.4; ctx.strokeStyle = 'oklch(0.62 0.13 150 / 0.5)'; ctx.stroke();
+            ctx.lineWidth = 1.4; ctx.strokeStyle = pal.ring; ctx.stroke();
           }
           if (on && p.n) label = { xy, n: p.n, d };
         });
@@ -1168,9 +1438,9 @@ class Component extends DCLogic {
           const flip = label.xy[0] + 18 + ctx.measureText(label.n).width > W - 14;
           ctx.textAlign = flip ? 'right' : 'left';
           const x = label.xy[0] + (flip ? -18 : 18), y = label.xy[1] - 0.5;
-          ctx.strokeStyle = 'oklch(0.985 0.008 150 / ' + (a * 0.85) + ')';
+          ctx.strokeStyle = 'oklch(' + pal.halo + ' / ' + (a * 0.85) + ')';
           ctx.strokeText(label.n, x, y);
-          ctx.fillStyle = 'oklch(0.34 0.09 150 / ' + a + ')';
+          ctx.fillStyle = 'oklch(' + pal.label + ' / ' + a + ')';
           ctx.fillText(label.n, x, y);
         }
       }
@@ -1233,7 +1503,7 @@ class Component extends DCLogic {
     const RIGHT_TEXT = { align: 'right', logoML: 'auto', logoJust: 'flex-end' };
     const LEFT_TEXT = { align: 'left', logoML: '0', logoJust: 'flex-start' };
     const leftColText = narrow ? LEFT_TEXT : RIGHT_TEXT;
-    const teal0 = "oklch(0.68 0.085 205)", teal1 = "oklch(0.6 0.1 210)";
+    const teal0 = "var(--edu-bar-1)", teal1 = "var(--edu-bar-2)";
 
     const CITY = {
       valencia: { n: 'València', c: [-0.3763, 39.4699] },
@@ -1340,7 +1610,7 @@ class Component extends DCLogic {
       nudge: narrow ? 0 : e.nudge,
     }));
 
-    const g1 = "oklch(0.75 0.05 150)", g2 = "oklch(0.71 0.09 152)", g3 = "oklch(0.62 0.12 150)", g4 = "oklch(0.53 0.13 150)";
+    const g1 = "var(--g1)", g2 = "var(--g2)", g3 = "var(--g3)", g4 = "var(--g4)";
     const expBase = [
       { logoId: "logo-selectra", logoSrc: "assets/selectra-logo.png", showLogo: true, color: g1, barLeft: EXP_L,
         from: [2018, 1], to: [2018, 6], cities: [CITY.madrid], ...seg(2018.0, 2018.5) },
@@ -1362,7 +1632,7 @@ class Component extends DCLogic {
 
     // Volunteering shares the right-hand column with Experience — nothing else
     // sits there in 2016-2017 — but carries its own amber and its own legend.
-    const amber = "oklch(0.72 0.14 62)";
+    const amber = "var(--vol)";
     const volBase = [
       { color: amber, barLeft: EXP_L,
         from: [2016, 7], to: [2016, 8], cities: [CITY.toamasina], ...seg(2016.5, 2016.667) },
@@ -1379,7 +1649,7 @@ class Component extends DCLogic {
     // order and it leaves a gap in H2 2024 — so every slot names its project by
     // key. Copy still comes from the Work cards (L.projects), which stay the
     // single source of truth for titles; only dates and assets live here.
-    const yellow = "oklch(0.95 0.25 110)";
+    const yellow = "var(--proj)";
     const projBase = [
       { key: "iro", from: [2024, 1], to: [2024, 6], ...seg(2024.0, 2024.5) },
       { key: "platform", from: [2025, 1], to: [2025, 6], ...seg(2025.0, 2025.5) },
@@ -1439,8 +1709,8 @@ class Component extends DCLogic {
       // a long diagonal hairline reads much fainter than a short flat one
       e.leaderCol = Math.abs(dy) > 6 ? sloped : flat;
     };
-    const HAIR = 'oklch(0.86 0.02 150)', HAIR_SLOPE = 'oklch(0.78 0.03 150)';
-    const PHAIR = 'oklch(0.86 0.03 300)', PHAIR_SLOPE = 'oklch(0.76 0.07 300)';
+    const HAIR = 'var(--hair)', HAIR_SLOPE = 'var(--hair-slope)';
+    const PHAIR = 'var(--proj-hair)', PHAIR_SLOPE = 'var(--proj-hair-slope)';
 
     if (narrow) {
       // one column: every card competes with every other for vertical room, and
@@ -1597,7 +1867,7 @@ class Component extends DCLogic {
       onLangToggle: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ langOpen: !s.langOpen })); },
       hrefAbout, hrefWork, hrefSkills, hrefExperience, hrefContact,
       onNavAbout, onNavWork, onNavSkills, onNavExperience, onNavContact,
-      onEmail: () => this.copyEmail(profile.links.email),
+      onCopyEmail: () => this.copyEmail(profile.links.email),
       emailCopied: !!this.state.emailCopied,
       emailToast: t.ct.copied,
     };

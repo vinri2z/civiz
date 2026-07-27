@@ -5,7 +5,7 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).fr = {
     code: "FR", label: "Français",
-    nav: { about: "à propos", work: "projets", skills: "compétences", timeline: "historique", contact: "contact" },
+    nav: { about: "à propos", work: "projets", skills: "compétences", timeline: "historique", contact: "contact", theme: "Thème clair ou sombre" },
     hero: { loc: "Valence, Espagne", pron: "Il/Lui", title: "Senior Data Scientist · Ingénieur IA", tag: "Applications LLM", email: "E-mail", scroll: "SCROLL", spin: "SCROLL",
       summary: "Ingénieur machine learning et logiciel, plus de 6 ans passés à transformer de vastes corpus de textes — réglementations, rapports annuels, publications extra-financières — en données structurées et interrogeables. Je construis toute la chaîne : filtre classique, extracteur LLM et le framework d'évaluation qui le mesure." },
     about: { label: "// usage éthique de l'IA", h1: "Un usage éthique de l'", hAcc: "IA", h2: ".", stat: "ans en Machine Learning et logiciel",
@@ -17,7 +17,7 @@
     work: { label: "// projets sélectionnés", h: "Ce que j'ai construit", p: "Des systèmes qui lisent des documents à grande échelle. Ouvrez un projet pour le détail technique.", show: "Voir le détail ▾", hide: "Masquer le détail ▴", deck: "Voir la présentation sur slideshare.net", timelineLink: "Voir sur la frise" },
     tk: { label: "// boîte à outils", h: "Comment je construis" },
     sk: { label: "// compétences", h: "Langues et au-delà", langs: "Langues", beyond: "Façons de travailler" },
-    ct: { label: "// contactez moi", h1: "Vous développez une application IA native ?", h2: "", p: "J'aimerais en discuter, écrivez-moi - je suis basé à Valence et peux travailler à distance.", copied: "Adresse e-mail copiée", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
+    ct: { label: "// contactez moi", h1: "Vous développez une application IA native ?", h2: "", p: "J'aimerais en discuter, écrivez-moi - je suis basé à Valence et peux travailler à distance.", copied: "Adresse e-mail copiée", copy: "Copier l'adresse e-mail", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat scientifique, sciences de l'ingénieur · Félicitations du jury", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathématiques et Physique", place: "Versailles, FR" },
