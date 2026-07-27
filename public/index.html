@@ -31,6 +31,11 @@
   @keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,26px) scale(1.12)}}
   @keyframes bob{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(9px);opacity:1}}
   @keyframes gridpan{0%{background-position:0 0}100%{background-position:44px 44px}}
+  /* The spin invitation: the pill drifts the way the gesture goes, and each arrow
+     leads it, so the hint shows the motion instead of only naming it. */
+  @keyframes spinhint{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+  @keyframes spinarrowL{0%,100%{opacity:.3;transform:translateX(0)}30%{opacity:1;transform:translateX(-3px)}}
+  @keyframes spinarrowR{0%,100%{opacity:.3;transform:translateX(0)}70%{opacity:1;transform:translateX(3px)}}
   main>section{scroll-margin-top:84px}
   /* Phone layout. Everything on the page is styled inline, so these overrides
      have to be !important to outrank the style attributes they correct. The
@@ -48,6 +53,9 @@
      pill floats over its cards, and every card already names its own city. */
   @media (max-width:900px){
     #globe-place{display:none !important}
+    /* No trackpad to scroll sideways with, and the touch equivalent would fight
+       the page's own vertical scroll, so the gesture is desktop-only. */
+    #globe-spin{display:none !important}
   }
 </style>
 </helmet>
@@ -62,6 +70,11 @@
 <div id="globe-place" style="position:fixed;left:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.06em;color:oklch(0.44 0.06 155);opacity:0;transition:opacity .6s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:oklch(0.981 0.012 138 / 0.82);backdrop-filter:blur(6px);border:1px solid oklch(0.9 0.015 150)">
   <span style="width:7px;height:7px;border-radius:50%;background:oklch(0.6 0.13 150);box-shadow:0 0 0 4px oklch(0.6 0.13 150 / 0.16)"></span>
   <span id="globe-place-name">València</span>
+</div>
+<div id="globe-spin" style="position:fixed;right:26px;bottom:22px;z-index:3;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;color:oklch(0.48 0.05 155);opacity:0;transition:opacity .7s ease;pointer-events:none;padding:7px 13px;border-radius:999px;background:oklch(0.981 0.012 138 / 0.82);backdrop-filter:blur(6px);border:1px solid oklch(0.9 0.015 150);animation:spinhint 3.4s ease-in-out infinite">
+  <span style="animation:spinarrowL 3.4s ease-in-out infinite">←</span>
+  <span>{{ t.hero.spin }}</span>
+  <span style="animation:spinarrowR 3.4s ease-in-out infinite">→</span>
 </div>
 
 <header style="position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:blur(14px);background:oklch(0.981 0.012 138 / 0.72);border-bottom:1px solid oklch(0.9 0.012 150)">
@@ -625,6 +638,7 @@ class Component extends DCLogic {
     if (this._io) this._io.disconnect();
     if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._onWheel) window.removeEventListener('wheel', this._onWheel);
     if (this._onVW) window.removeEventListener('resize', this._onVW);
     if (this._vwRaf) cancelAnimationFrame(this._vwRaf);
     if (this._onDoc) document.removeEventListener('click', this._onDoc);
@@ -932,6 +946,30 @@ class Component extends DCLogic {
     resize(); // also sets the canvas opacity, which is what fades the globe in
     if (placeEl) placeEl.style.opacity = '1';
 
+    // Lateral scroll spins the globe. It rides as an offset on top of whatever
+    // the globe is already doing (timeline lock or idle spin) so the gesture
+    // never has to fight the animation it lands in.
+    const spinEl = document.getElementById('globe-spin');
+    let spinVel = 0, spinOff = 0, spinIdleFrames = 0, spun = false;
+    const FREE_FRAMES = 110; // ~1.8s of hands-off before the timeline takes the wheel back
+    const onWheel = e => {
+      // Vertical intent wins: a trackpad flick down carries a little deltaX with
+      // it, and that must not spin the world.
+      if (Math.abs(e.deltaX) < 1.5 || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      spinVel = Math.max(-7, Math.min(7, spinVel + e.deltaX * 0.055));
+      spinIdleFrames = 0;
+      if (!spun) { spun = true; if (spinEl) spinEl.style.opacity = '0'; }
+    };
+    window.addEventListener('wheel', onWheel, { passive: true });
+    this._onWheel = onWheel;
+    // held back until the globe has faded in and the page has stopped moving,
+    // otherwise it competes with the hero's own scroll hint
+    setTimeout(() => {
+      if (this._dead || spun || !spinEl) return;
+      if (W < this.NARROW_PX) return; // CSS hides it there too; don't fade in an invisible pill
+      spinEl.style.opacity = '1';
+    }, 3200);
+
     // The globe only tracks the timeline while the viewport centre is inside it.
     // Everywhere else — hero, about, work, skills above it, contact below — it
     // spins slowly instead of sitting locked on one waypoint.
@@ -947,6 +985,20 @@ class Component extends DCLogic {
       if (this._dead) return;
       const idle = !onTimeline();
       let idx = lastIdx, pts = null;
+
+      // user spin: integrate, then coast to a stop
+      spinOff += spinVel;
+      spinVel *= 0.94;
+      if (Math.abs(spinVel) < 0.004) spinVel = 0;
+      if (spinOff > 180) spinOff -= 360; else if (spinOff < -180) spinOff += 360;
+      spinIdleFrames = spinVel ? 0 : spinIdleFrames + 1;
+      // Off the timeline the offset just stays — the user spun the earth and it
+      // stays spun. On the timeline the lock has to come back, or the highlighted
+      // city ends up on the far side of the globe from its own card.
+      if (!idle && spinIdleFrames > FREE_FRAMES) {
+        spinOff *= 0.975;
+        if (Math.abs(spinOff) < 0.05) spinOff = 0;
+      }
 
       if (idle) {
         // carry on from wherever the globe is, so entering and leaving the
@@ -974,8 +1026,8 @@ class Component extends DCLogic {
       // the place name means nothing while the globe is free-spinning
       if (placeEl) placeEl.style.opacity = idle ? '0' : '1';
 
-      if (settled < 3) {
-        projection.rotate([-cur[0], -cur[1]]);
+      if (settled < 3 || spinVel || spinOff) {
+        projection.rotate([-(cur[0] + spinOff), -cur[1]]);
         ctx.clearRect(0, 0, W, H);
 
         ctx.beginPath(); path({ type: 'Sphere' });
