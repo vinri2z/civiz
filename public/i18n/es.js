@@ -5,8 +5,8 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).es = {
     code: "ES", label: "Español",
-    nav: { about: "sobre mí", work: "trabajo", skills: "aptitudes", timeline: "trayectoria", contact: "contacto" },
-    hero: { loc: "Valencia, España", pron: "Él", title: "Data Scientist Senior · Ingeniero de IA", tag: "Aplicaciones GenAI y LLM", email: "Correo", scroll: "DESLIZA", spin: "DESLIZA DE LADO PARA GIRAR",
+    nav: { about: "sobre mí", work: "trabajo", skills: "aptitudes", timeline: "histórico", contact: "contacto" },
+    hero: { loc: "Valencia, España", pron: "Él", title: "Data Scientist Senior · Ingeniero de IA", tag: "Aplicaciones LLM", email: "Correo", scroll: "DESLIZA", spin: "DESLIZA PARA GIRAR",
       summary: "Ingeniero de machine learning y software con más de 6 años convirtiendo grandes corpus de texto —regulaciones, informes anuales y divulgaciones corporativas— en datos estructurados y consultables. Construyo el camino completo: filtro clásico, extractor con LLM y el arnés de evaluación que lo mide." },
     about: { label: "// uso ético de la IA", h1: "Uso ético de la ", hAcc: "IA", h2: ".", stat: "años en ML y software",
       body: "Trabajo para sacar el máximo partido a los LLM donde tiene sentido, manteniendo siempre barreras de seguridad, métricas estrictas y una persona en el bucle." },

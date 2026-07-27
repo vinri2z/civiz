@@ -165,7 +165,7 @@
     <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:620px;font-size:17px;color:oklch(0.46 0.02 150);margin-bottom:48px">{{ t.work.p }}</p>
     <div style="display:flex;flex-direction:column;gap:22px">
       <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
-        <div class="cv-card" data-reveal="" data-i="{{ $index }}" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);border:1px solid oklch(0.9 0.015 150);border-radius:20px;background:oklch(0.995 0.004 140);padding:34px 34px 30px;box-shadow:0 1px 0 oklch(0.5 0.05 150 / 0.03)">
+        <div class="cv-card" data-reveal="" data-i="{{ $index }}" data-project-key="{{ p.key }}" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);border:1px solid oklch(0.9 0.015 150);border-radius:20px;background:oklch(0.995 0.004 140);padding:34px 34px 30px;box-shadow:0 1px 0 oklch(0.5 0.05 150 / 0.03)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px">
             <div style="font-family:'JetBrains Mono';font-size:12px;letter-spacing:.02em;color:oklch(0.5 0.1 150)">{{ p.tag }}</div>
             <sc-if value="{{ p.showLogo }}" hint-placeholder-val="{{ false }}">
@@ -347,7 +347,7 @@
 
         <sc-for list="{{ tl.proj }}" as="p" hint-placeholder-count="4">
           <div style="position:absolute;top:{{ p.leaderTop }}px;left:{{ p.leaderLeft }}px;width:{{ p.leaderW }}px;height:1px;background:{{ p.leaderCol }};transform:{{ p.leaderTf }};transform-origin:0 50%;z-index:1"></div>
-          <div data-card-h="{{ p.ck }}" style="position:absolute;top:{{ p.cardY }}px;left:{{ p.cardLeft }}px;width:{{ p.cardW }}px;transform:translateY(-50%);text-align:{{ p.align }};z-index:4">
+          <div data-card-h="{{ p.ck }}" data-project-key="{{ p.key }}" style="position:absolute;top:{{ p.cardY }}px;left:{{ p.cardLeft }}px;width:{{ p.cardW }}px;transform:translateY(-50%);text-align:{{ p.align }};z-index:4">
             <div data-reveal="" data-i="{{ p.i }}" style="opacity:0;transform:translateY(14px);transition:opacity .8s cubic-bezier(.22,.61,.36,1),transform .8s cubic-bezier(.22,.61,.36,1)">
               <sc-if value="{{ p.showLogo }}" hint-placeholder-val="{{ false }}">
                 <div style="height:34px;width:150px;margin-left:{{ p.logoML }};margin-bottom:9px;display:flex;align-items:center;justify-content:{{ p.logoJust }}">
@@ -513,7 +513,16 @@ class Component extends DCLogic {
   goTo(e, id, extra) {
     if (e) e.preventDefault();
     history.pushState(null, '', this.sectionHref(id, extra));
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.scrollToTarget(id, extra && extra.p, 'smooth');
+  }
+
+  // Prefers the element tagged with the shared project key over the bare
+  // section — a `#projects?p=platform` link should land on the Platform card,
+  // not just the top of the Work section (same for `#experience?p=...`).
+  scrollToTarget(id, key, behavior) {
+    const section = document.getElementById(id);
+    const target = (key && section?.querySelector('[data-project-key="' + key + '"]')) || section;
+    target?.scrollIntoView({ behavior, block: 'start' });
   }
 
   // Restores a shared link's state on load: `#<section>?lang=..&p=<projectKey>`.
@@ -528,7 +537,7 @@ class Component extends DCLogic {
     const key = params.get('p');
     const i = key ? this.PROJECTS.findIndex(p => p.key === key) : -1;
     if (i >= 0) this.setState(s => ({ expanded: { ...s.expanded, [i]: true } }));
-    if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }), 60);
+    if (id) setTimeout(() => this.scrollToTarget(id, key, undefined), 60);
   }
 
   setLang(code) {
@@ -573,7 +582,7 @@ class Component extends DCLogic {
       // Stays stuck to the bottom of the viewport for the whole page, not just
       // the hero, and only fades once there's nothing left below to scroll to.
       const hint = document.querySelector('[data-scroll-hint]');
-      if (hint) hint.style.opacity = p > 0.995 ? '0' : '1';
+      if (hint) hint.style.opacity = (max - h.scrollTop) < 4 ? '0' : '1';
       document.querySelectorAll('[data-parallax]').forEach(el => {
         const s = parseFloat(el.dataset.parallax) || 0.1;
         const base = el.dataset.baseX ? 'translateX(' + el.dataset.baseX + ') ' : '';
@@ -872,6 +881,10 @@ class Component extends DCLogic {
     const ease = t => t * t * (3 - 2 * t);
 
     let W = 0, H = 0, dpr = 1;
+    // Base radius (whole-earth framing). The frame loop multiplies it by `zoom`
+    // to lean in on whichever city the timeline has just arrived at.
+    let baseR = 240, zoom = 1;
+    const ZOOM_IN = 2.6;    // ≈ a country-sized crop at typical viewport radii
     const resize = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = canvas.clientWidth; H = canvas.clientHeight;
@@ -880,8 +893,8 @@ class Component extends DCLogic {
       // NARROW_PX: wherever the timeline is one full-width column, its cards sit
       // right on top of the globe, so the globe centres up and recedes
       const nar = W < this.NARROW_PX;
-      const R = Math.max(240, Math.min(W, H) * (nar ? 0.52 : 0.46));
-      projection.scale(R).translate([nar ? W * 0.5 : W * 0.68, H * 0.52]);
+      baseR = Math.max(240, Math.min(W, H) * (nar ? 0.52 : 0.46));
+      projection.scale(baseR * zoom).translate([nar ? W * 0.5 : W * 0.68, H * 0.52]);
       canvas.style.opacity = nar ? '0.34' : '0.62';
     };
     resize();
@@ -984,7 +997,7 @@ class Component extends DCLogic {
     const frame = () => {
       if (this._dead) return;
       const idle = !onTimeline();
-      let idx = lastIdx, pts = null;
+      let idx = lastIdx, pts = null, zoomTarget = 1;
 
       // user spin: integrate, then coast to a stop
       spinOff += spinVel;
@@ -1017,6 +1030,13 @@ class Component extends DCLogic {
         const moving = Math.abs(dl) > 0.02 || Math.abs(dp) > 0.02;
         if (moving) settled = 0; else settled++;
 
+        // Zoom follows arrival, not the card: the closer the rotation is to the
+        // city it is flying to, the further in we lean. Flying between two
+        // cities pulls back out to whole-earth so the hop stays readable.
+        // A user spin also cancels it — you can't spin a zoomed-in crop.
+        const near = 1 - Math.min(1, d3.geoDistance(cur, t.pt) / 0.20); // 0.20 rad ≈ 1300km
+        zoomTarget = spinVel || spinOff ? 1 : 1 + near * (ZOOM_IN - 1);
+
         if (idx !== lastIdx) {
           lastIdx = idx;
           if (nameEl && pts[idx]) nameEl.textContent = pts[idx].n;
@@ -1026,7 +1046,11 @@ class Component extends DCLogic {
       // the place name means nothing while the globe is free-spinning
       if (placeEl) placeEl.style.opacity = idle ? '0' : '1';
 
-      if (settled < 3 || spinVel || spinOff) {
+      const zooming = Math.abs(zoomTarget - zoom) > 0.0015;
+      if (zooming) zoom += (zoomTarget - zoom) * 0.05; else zoom = zoomTarget;
+
+      if (settled < 3 || zooming || spinVel || spinOff) {
+        projection.scale(baseR * zoom);
         projection.rotate([-(cur[0] + spinOff), -cur[1]]);
         ctx.clearRect(0, 0, W, H);
 
@@ -1271,7 +1295,7 @@ class Component extends DCLogic {
     // order and it leaves a gap in H2 2024 — so every slot names its project by
     // key. Copy still comes from the Work cards (L.projects), which stay the
     // single source of truth for titles; only dates and assets live here.
-    const violet = "oklch(0.58 0.15 300)";
+    const violet = "oklch(0.95 0.25 110)";
     const projBase = [
       { key: "iro", from: [2024, 1], to: [2024, 6], ...seg(2024.0, 2024.5) },
       { key: "platform", from: [2025, 1], to: [2025, 6], ...seg(2025.0, 2025.5) },
@@ -1423,6 +1447,7 @@ class Component extends DCLogic {
       const card = this.PROJECTS[i];
       return {
         ...p,
+        key: card.key,
         stack: card.stack,
         open,
         link: card.deck || "",

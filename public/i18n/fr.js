@@ -5,19 +5,19 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).fr = {
     code: "FR", label: "Français",
-    nav: { about: "à propos", work: "travaux", skills: "compétences", timeline: "frise", contact: "contact" },
-    hero: { loc: "Valence, Espagne", pron: "Il/Lui", title: "Data scientist senior · Ingénieur IA", tag: "Applications GenAI et LLM", email: "E-mail", scroll: "DÉFILER", spin: "DÉFILEZ DE CÔTÉ POUR TOURNER",
-      summary: "Ingénieur machine learning et logiciel, plus de 6 ans passés à transformer de vastes corpus de textes — réglementations, rapports annuels, publications extra-financières — en données structurées et interrogeables. Je construis toute la chaîne : filtre classique, extracteur LLM et le harnais d'évaluation qui le mesure." },
-    about: { label: "// usage éthique de l'IA", h1: "Un usage éthique de l'", hAcc: "IA", h2: ".", stat: "ans en ML et logiciel",
-      body: "Je travaille pour que nous tirions le meilleur des LLM là où c'est pertinent, en gardant toujours des garde-fous, des métriques strictes et un humain dans la boucle." },
-    tl: { label: "// expérience et formation", h: "Une seule frise", p: "Tout ce que j'ai étudié et construit, du plus récent au plus ancien, tracé à l'échelle.",
+    nav: { about: "à propos", work: "projets", skills: "compétences", timeline: "historique", contact: "contact" },
+    hero: { loc: "Valence, Espagne", pron: "Il/Lui", title: "Senior Data Scientist · Ingénieur IA", tag: "Applications LLM", email: "E-mail", scroll: "SCROLL", spin: "SCROLL",
+      summary: "Ingénieur machine learning et logiciel, plus de 6 ans passés à transformer de vastes corpus de textes — réglementations, rapports annuels, publications extra-financières — en données structurées et interrogeables. Je construis toute la chaîne : filtre classique, extracteur LLM et le framework d'évaluation qui le mesure." },
+    about: { label: "// usage éthique de l'IA", h1: "Un usage éthique de l'", hAcc: "IA", h2: ".", stat: "ans en Machine Learning et logiciel",
+      body: "Je travaille pour que nous tirions le meilleur des LLM là où c'est pertinent, en gardant toujours des garde-fous, des métriques strictes et une supervision humaine." },
+    tl: { label: "// expérience et formation", h: "Historique", p: "Tout ce que j'ai étudié et construit, du plus récent au plus ancien, tracé à l'échelle.",
       eduLegend: "Formation", expLegend: "Expérience", volLegend: "Bénévolat", projLegend: "Projets", foldLegend: "Temps replié",
       yr1: "an", yrN: "ans", mo1: "mois", moN: "mois", present: "Aujourd'hui", workLink: "Détails du projet",
       months: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."] },
     work: { label: "// travaux sélectionnés", h: "Ce que j'ai construit", p: "Des systèmes qui lisent des documents à grande échelle. Ouvrez un projet pour le détail technique.", show: "Voir le détail ▾", hide: "Masquer le détail ▴", deck: "Voir la présentation", timelineLink: "Voir sur la frise" },
     tk: { label: "// boîte à outils", h: "Comment je construis" },
     sk: { label: "// compétences", h: "Langues et au-delà", langs: "Langues", beyond: "Façons de travailler" },
-    ct: { label: "// parlons-en", h1: "Vous construisez quelque chose qui lit", h2: "des documents à longueur de journée ?", p: "J'aimerais en entendre parler. Écrivez-moi — je suis basé à Valence et travaille à distance.", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
+    ct: { label: "// contactez moi", h1: "Besoin d'un pipeline de ", h2: "NLP ?", p: "Je suis curieux d'en discuter. Écrivez-moi - je suis basé à Valence et peux travailler à distance.", footer: "© 2026 Vincent Rizzo · Valence, Espagne" },
     edu: [
       { name: "Lycée Militaire d'Aix-en-Provence", sub: "Baccalauréat scientifique, sciences de l'ingénieur · Félicitations du jury", place: "Aix-en-Provence, FR" },
       { name: "Lycée Sainte-Geneviève", sub: "CPGE · Mathématiques et Physique", place: "Versailles, FR" },
@@ -26,7 +26,7 @@
     ],
     vol: [
       { name: "Les Enfants du Soleil", sub: "Bénévole · association pour l'enfance", place: "Toamasina, MG" },
-      { name: "4L Trophy — Les Enfants du Désert", sub: "Équipage · rallye étudiant, livraison de fournitures scolaires", place: "Boulajoul, MA" },
+      { name: "4L Trophy — Les Enfants du Désert", sub: "Équipage · rallye étudiant, livraison de fournitures scolaires", place: "Boulaajoul, MA" },
     ],
     exp: [
       { role: "Stagiaire automatisation QA", org: "Selectra", place: "Madrid, ES", note: "Automatisation des tests avec Katalon, Selenium et Groovy." },
@@ -35,7 +35,7 @@
       { role: "Data scientist senior", org: "Datamaran", place: "Valence, ES", note: "Responsable des fonctionnalités GenAI assistées par LLM et pilotées par l'évaluation." },
     ],
     projects: [
-      { tag: "Ingénierie IA · projet phare", title: "Pipeline d'extraction d'objectifs ESG",
+      { tag: "Ingénierie IA · projet principal", title: "Pipeline d'extraction d'objectifs ESG",
         blurb: "Un pipeline Airflow qui lit les rapports ESG et annuels des entreprises et en extrait des objectifs de durabilité dédupliqués et étiquetés par thème. Cinq composants appris : des modèles classiques là où ils gagnent, des LLM là où la langue est difficile.",
         bullets: [
           "Pré-filtre XGBoost / TF-IDF orienté rappel (optimisé sur F2, seuil de décision bas) pour sur-admettre les phrases candidates. Un oubli ici est irrécupérable ; un faux positif est rattrapé plus loin.",
@@ -68,7 +68,7 @@
     ],
     toolkit: [
       { group: "IA / ML", items: ["Orchestration de LLM (GPT, Claude, modèles ouverts)", "DSPy (GEPA, MIPROv2)", "RAG et recherche sémantique", "XGBoost / scikit-learn", "sentence-transformers / embeddings", "Résolution d'entités et clustering", "Évaluation et métriques"] },
-      { group: "Ingénierie / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS (serverless)", "Postgres · S3", "Argilla (humain dans la boucle)", "OpenTelemetry", "uv · ruff"] },
+      { group: "Ingénierie / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS", "Postgres · S3", "Argilla (annotation de données)", "OpenTelemetry", "uv · ruff"] },
     ],
     languages: [
       { name: "Français", level: "Langue maternelle", flag: "🇫🇷" }, { name: "Anglais", level: "Courant · C2", flag: "🇬🇧" },
