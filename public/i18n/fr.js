@@ -71,8 +71,8 @@
       { group: "Ingénierie / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS", "Postgres · S3", "Argilla (annotation de données)", "OpenTelemetry", "uv · ruff"] },
     ],
     languages: [
-      { name: "Français", level: "Langue maternelle", flag: "🇫🇷" }, { name: "Anglais", level: "Courant · C2", flag: "🇬🇧" },
-      { name: "Espagnol", level: "Courant · C2", flag: "🇪🇸" }, { name: "Catalan", level: "Conversationnel · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
+      { name: "Français", level: "Langue maternelle", flag: "🇫🇷" }, { name: "English", level: "Courant · C2", flag: "🇬🇧" },
+      { name: "Español", level: "Courant · C2", flag: "🇪🇸" }, { name: "Català", level: "Conversationnel · B1", flag: "🏴󠁥󠁳󠁣󠁴󠁿" },
     ],
     beyond: ["Remote-first, équipes distribuées", "Livraison guidée par l'évaluation", "Conférences et ateliers internes", "Mentorat et revue de code"],
   };
