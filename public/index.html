@@ -122,10 +122,10 @@
         <span style="width:22px;height:1px;background:oklch(0.55 0.1 150)"></span>
         {{ t.hero.loc }} · {{ t.hero.pron }}
       </div>
-      <!-- The name doubles as a point cloud: initNameCloud turns the real glyphs
-           transparent, repaints the same text on the canvas and punches dots out
-           of it wherever the pointer goes. Without JS (or with reduced motion / no
-           fine pointer) the text below stays as it is and the canvas stays empty. -->
+      <!-- The name doubles as a point cloud: initNameCloud samples the rendered
+           text off-screen, turns the real glyphs transparent and draws the dots
+           on the canvas. Without JS (or with reduced motion / no fine pointer)
+           the text below stays as it is and the canvas stays empty. -->
       <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);position:relative;font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:oklch(0.22 0.02 150);text-wrap:balance">
         <span data-name-ink="">Vincent<br>Rizzo</span>
         <canvas data-name-cloud="" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas>
@@ -647,7 +647,6 @@ class Component extends DCLogic {
     if (this._nameRaf) cancelAnimationFrame(this._nameRaf);
     if (this._nameIo) this._nameIo.disconnect();
     if (this._nameEvap) clearInterval(this._nameEvap);
-    if (this._globeEvap) clearInterval(this._globeEvap);
     if (this._nameResizeT) clearTimeout(this._nameResizeT);
     if (this._onNameMove) window.removeEventListener('mousemove', this._onNameMove);
     if (this._onNameLeave) window.removeEventListener('mouseout', this._onNameLeave);
@@ -658,13 +657,11 @@ class Component extends DCLogic {
   }
 
   // Hero name as a point cloud. The <span> keeps the real text for screen
-  // readers, search engines and copy-paste; it goes transparent and the canvas
-  // paints the same string in the same font on the same baselines, so at rest the
-  // heading is set type and not a mosaic — the only tell is the odd dot drifting
-  // off it. The cloud only exists where the name has been disturbed: each cell
-  // the pointer shoves is punched out of the glyph and redrawn wherever the shove
-  // put it, and a spring drags it back home, which is what reforms the letters
-  // behind the cursor.
+  // readers, search engines and copy-paste; it just goes transparent once the
+  // dots are up. Dots are sampled from an off-screen render of the same font at
+  // the same size, so they land exactly where the glyphs were. The pointer pushes
+  // every dot inside its radius outwards; a spring pulls each one back to its
+  // home pixel, which is what reforms the letters behind the cursor.
   initNameCloud() {
     const canvas = document.querySelector('[data-name-cloud]');
     const ink = document.querySelector('[data-name-ink]');
@@ -680,36 +677,24 @@ class Component extends DCLogic {
       .map(s => s.replace(/<[^>]*>/g, '').trim()).filter(Boolean);
     if (!lines.length) return;
 
-    // A dot is the bite it takes out of the glyph rather than the ink that draws
-    // it, so the pitch buys nothing at rest and costs only the cells the pointer
-    // has actually touched — a couple of thousand at most, not every pixel of
-    // every letter. The dot is a little under its cell, so a shoved cell gives
-    // back less ink than it took and the swept letter reads as opened up.
-    const STEP = 1.5;    // mask pitch, CSS px
-    const DOT = 1.3;     // dot size, just under the cell
+    // One dot per glyph pixel: at rest the name is indistinguishable from set type,
+    // and the only hint is the odd dot radiating away from it.
+    // Sub-pixel grid: the glyphs are rendered off-screen at SS× and sampled at
+    // one dot per off-screen pixel, so the cloud is SS× denser than the CSS
+    // pixel grid and the dots stay individually visible once they scatter.
+    const SS = 2;        // supersample factor
+    const STEP = 1 / SS; // sampling grid, CSS px
     const RADIUS = 30;   // pointer blast radius, px
     // Small bite, hard shove, slow heal: the trace the cursor cuts stays open for
     // a beat or two behind it before the springs close it again.
     const PUSH = 1;      // repulsion strength
     const SPRING = 0.2;// pull back home
     const DAMP = 0.8;   // velocity decay
-    const EVAP_EVERY = 900;   // ms between dots that leave for good
+    const EVAP_EVERY = 10000; // ms between dots that leave for good
     const EVAP_SPEED = 0.28;  // px/frame — a slow drift outwards
-    const MAX_FREE = 10;      // dots adrift at once
-    // How far a loose dot gets before its cell stops being punched out. Past this
-    // the glyph closes over the gap and the dot carries on alone: a hole held open
-    // for the twenty seconds it takes to cross the canvas reads as dirt on the
-    // screen, not as a dot that left.
-    const HEAL_AT = 14;
     const INK = 'oklch(0.22 0.02 150)';
 
-    // mask[cell] is a 1-based slot for every cell with ink under it, 0 elsewhere;
-    // cell[slot] gets the grid index back. Home position is derived from that
-    // index, so the only per-dot state is position and velocity.
-    let W = 0, H = 0, gw = 0, gh = 0, dpr = 1, live = true, font = '', spacing = '0px';
-    let mask = null, cell = null, pos = null, st = null, act = null, an = 0, freeN = 0;
-    let er = null, en = 0;
-    let baselines = [];
+    let pts = [], W = 0, H = 0, dpr = 1, dot = 2, live = true;
     const mouse = { x: -1e5, y: -1e5, on: false };
 
     const sample = () => {
@@ -721,155 +706,101 @@ class Component extends DCLogic {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + fs + 'px ' + cs.fontFamily;
-      spacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+      dot = STEP + 0.3; // dots overlap their grid cell, so resting glyphs look solid
 
-      // Mask pass: the same string in the same font, off-screen at grid
-      // resolution, purely to learn which cells carry ink.
-      gw = Math.ceil(W / STEP); gh = Math.ceil(H / STEP);
       const off = document.createElement('canvas');
-      off.width = gw; off.height = gh;
+      off.width = Math.max(1, Math.round(W * SS)); off.height = Math.max(1, Math.round(H * SS));
       const o = off.getContext('2d', { willReadFrequently: true });
-      o.setTransform(1 / STEP, 0, 0, 1 / STEP, 0, 0);
-      o.font = font;
-      if ('letterSpacing' in o) o.letterSpacing = spacing;
+      o.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + (fs * SS) + 'px ' + cs.fontFamily;
+      if ('letterSpacing' in o) {
+        o.letterSpacing = cs.letterSpacing === 'normal' ? '0px'
+          : (parseFloat(cs.letterSpacing) * SS) + 'px';
+      }
       o.textBaseline = 'alphabetic';
       o.fillStyle = '#000';
       // line-height on the h1 is 0.98; centre each line's ink in its line box so
-      // the canvas text sits on the same rows as the DOM text it replaces.
-      const box = fs * 0.98;
-      baselines = lines.map((line, i) => {
+      // the dots sit on the same rows as the DOM text they replace.
+      const box = fs * 0.98 * SS;
+      lines.forEach((line, i) => {
         const m = o.measureText(line);
-        const asc = m.actualBoundingBoxAscent || fs * 0.72;
-        const desc = m.actualBoundingBoxDescent || fs * 0.2;
-        return i * box + (box + asc - desc) / 2;
+        const asc = m.actualBoundingBoxAscent || fs * SS * 0.72;
+        const desc = m.actualBoundingBoxDescent || fs * SS * 0.2;
+        o.fillText(line, 0, i * box + (box + asc - desc) / 2);
       });
-      lines.forEach((line, i) => o.fillText(line, 0, baselines[i]));
 
-      const data = o.getImageData(0, 0, gw, gh).data;
-      const m = new Int32Array(gw * gh);
-      let n = 0;
-      for (let i = 0; i < m.length; i++) if (data[i * 4 + 3] > 90) m[i] = ++n;
-      if (n < 200) return false;
-      mask = m;
-      cell = new Int32Array(n + 1); // slot 0 is the "no ink" sentinel
-      for (let i = 0; i < m.length; i++) if (m[i]) cell[m[i]] = i;
-      pos = new Float32Array((n + 1) * 4);
-      st = new Uint8Array(n + 1); // 0 home, 1 shoved, 2 gone for good
-      act = new Int32Array(n + 1);
-      er = new Int32Array(n + 1); // the subset whose cells are still punched out
-      an = 0; en = 0; freeN = 0;
+      const data = o.getImageData(0, 0, off.width, off.height).data;
+      const next = [];
+      for (let y = 0; y < off.height; y++) {
+        for (let x = 0; x < off.width; x++) {
+          if (data[(y * off.width + x) * 4 + 3] > 130) {
+            const hx = (x + (Math.random() - 0.5) * 0.6) / SS;
+            const hy = (y + (Math.random() - 0.5) * 0.6) / SS;
+            // Per-dot sensitivity, so the pushed-away dots form a loose swarm
+            // instead of one razor-thin shell where push and spring cancel out.
+            next.push({ hx: hx, hy: hy, x: hx, y: hy, vx: 0, vy: 0, k: 0.6 + Math.random() * 0.9 });
+          }
+        }
+      }
+      if (next.length < 40) return false;
+      pts = next;
       ink.style.color = 'transparent';
       return true;
     };
 
-    // Roughly one dot a second cuts loose and radiates away from the middle of
-    // the name at a constant crawl — the only hint at rest that the letters are a
-    // cloud and not type. It keeps its full weight the whole way and its cell
-    // heals over once it clears the canvas.
+    // Roughly one dot every ten seconds cuts loose and radiates away from the
+    // middle of the name at a constant crawl — the only hint at rest that the
+    // letters are a cloud and not type. It keeps its full weight the whole way
+    // and is recycled back to its home pixel once it clears the canvas.
     const release = () => {
-      if (!cell || freeN >= MAX_FREE) return;
-      for (let t = 0; t < 40; t++) {
-        const s = 1 + ((Math.random() * (cell.length - 1)) | 0);
-        if (st[s]) continue;
-        const i = cell[s], b = s * 4;
-        const hx = ((i % gw) + 0.5) * STEP, hy = (((i / gw) | 0) + 0.5) * STEP;
-        const a = Math.atan2(hy - H / 2, hx - W / 2) + (Math.random() - 0.5) * 0.7;
-        st[s] = 2; freeN++;
-        pos[b] = hx; pos[b + 1] = hy;
-        pos[b + 2] = Math.cos(a) * EVAP_SPEED; pos[b + 3] = Math.sin(a) * EVAP_SPEED;
-        act[an++] = s;
-        return;
-      }
+      const p = pts[(Math.random() * pts.length) | 0];
+      if (!p || p.free) return;
+      const a = Math.atan2(p.hy - H / 2, p.hx - W / 2) + (Math.random() - 0.5) * 0.7;
+      p.free = true;
+      p.vx = Math.cos(a) * EVAP_SPEED;
+      p.vy = Math.sin(a) * EVAP_SPEED;
     };
 
     const frame = () => {
       this._nameRaf = 0;
-      if (this._dead || !mask) return;
-
-      // Everything under the pointer joins the simulation. The bounding box is
-      // square; the falloff below is what makes the bite round.
-      if (mouse.on) {
-        const c0 = Math.max(0, Math.floor((mouse.x - RADIUS) / STEP));
-        const c1 = Math.min(gw - 1, Math.ceil((mouse.x + RADIUS) / STEP));
-        const r0 = Math.max(0, Math.floor((mouse.y - RADIUS) / STEP));
-        const r1 = Math.min(gh - 1, Math.ceil((mouse.y + RADIUS) / STEP));
-        for (let r = r0; r <= r1; r++) {
-          const row = r * gw;
-          for (let c = c0; c <= c1; c++) {
-            const s = mask[row + c];
-            if (s && !st[s]) { st[s] = 1; act[an++] = s; }
-          }
-        }
-      }
-
-      let w = 0, busy = false;
-      en = 0;
-      for (let k = 0; k < an; k++) {
-        const s = act[k], i = cell[s], b = s * 4;
-        const hx = ((i % gw) + 0.5) * STEP, hy = (((i / gw) | 0) + 0.5) * STEP;
-        let x = pos[b], y = pos[b + 1], vx = pos[b + 2], vy = pos[b + 3];
-        if (st[s] === 2) {
-          x += vx; y += vy;
-          // Off the canvas: drop it, and the glyph closes over its cell unnoticed.
-          if (x < -8 || y < -8 || x > W + 8 || y > H + 8) { st[s] = 0; freeN--; continue; }
-          const dx = x - hx, dy = y - hy;
-          if (dx * dx + dy * dy < HEAL_AT * HEAL_AT) er[en++] = s;
-        } else {
-          if (mouse.on) {
-            const dx = x - mouse.x, dy = y - mouse.y, d2 = dx * dx + dy * dy;
-            if (d2 < RADIUS * RADIUS) {
-              const d = Math.sqrt(d2) || 0.4;
-              // Per-dot sensitivity, so the pushed-away dots form a loose swarm
-              // instead of one razor-thin shell where push and spring cancel out.
-              const f = (1 - d / RADIUS) * PUSH * (0.6 + (s % 7) * 0.15) / d;
-              vx += dx * f; vy += dy * f;
-            }
-          }
-          vx = (vx + (hx - x) * SPRING) * DAMP;
-          vy = (vy + (hy - y) * SPRING) * DAMP;
-          x += vx; y += vy;
-          const ox = x - hx, oy = y - hy;
-          // Home and still: leave the list, so the glyph draws it from now on.
-          if (ox * ox + oy * oy < 0.02 && vx * vx + vy * vy < 0.02) { st[s] = 0; continue; }
-          er[en++] = s;
-        }
-        pos[b] = x; pos[b + 1] = y; pos[b + 2] = vx; pos[b + 3] = vy;
-        act[w++] = s;
-        busy = true;
-      }
-      an = w;
+      if (this._dead) return;
 
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = INK;
-      ctx.font = font;
-      if ('letterSpacing' in ctx) ctx.letterSpacing = spacing;
-      ctx.textBaseline = 'alphabetic';
-      lines.forEach((line, i) => ctx.fillText(line, 0, baselines[i]));
-
-      if (an) {
-        // Punch each disturbed cell out of the glyph, then put those dots back
-        // wherever they have got to. One path per pass, filled once: individual
-        // rect calls are what kill the frame budget.
-        if (en) {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.beginPath();
-          for (let k = 0; k < en; k++) {
-            const i = cell[er[k]];
-            ctx.rect((i % gw) * STEP, ((i / gw) | 0) * STEP, STEP, STEP);
+      // One path for every dot, filled once: tens of thousands of individual
+      // fillRect calls is what kills the frame budget at this density.
+      ctx.beginPath();
+      const half = dot / 2;
+      let busy = false;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (p.free) {
+          p.x += p.vx; p.y += p.vy;
+          // Gone from the canvas: put it back on the name, unnoticed.
+          if (p.x < -8 || p.y < -8 || p.x > W + 8 || p.y > H + 8) {
+            p.free = false; p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0;
+          } else {
+            busy = true;
+            ctx.rect(p.x - half, p.y - half, dot, dot);
+            continue;
           }
-          ctx.fill();
-          ctx.globalCompositeOperation = 'source-over';
         }
-
-        const half = DOT / 2;
-        ctx.beginPath();
-        for (let k = 0; k < an; k++) {
-          const b = act[k] * 4;
-          ctx.rect(pos[b] - half, pos[b + 1] - half, DOT, DOT);
+        if (mouse.on) {
+          const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+          if (d2 < RADIUS * RADIUS) {
+            const d = Math.sqrt(d2) || 0.4;
+            const f = (1 - d / RADIUS) * PUSH * p.k / d;
+            p.vx += dx * f; p.vy += dy * f;
+          }
         }
-        ctx.fill();
+        p.vx = (p.vx + (p.hx - p.x) * SPRING) * DAMP;
+        p.vy = (p.vy + (p.hy - p.y) * SPRING) * DAMP;
+        p.x += p.vx; p.y += p.vy;
+        const ox = p.x - p.hx, oy = p.y - p.hy;
+        if (ox * ox + oy * oy > 0.02 || p.vx * p.vx + p.vy * p.vy > 0.02) busy = true;
+        else { p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0; }
+        ctx.rect(p.x - half, p.y - half, dot, dot);
       }
+      ctx.fill();
 
       // Scrolled out of view, or everything home with the pointer elsewhere:
       // stop until something happens.
@@ -952,23 +883,15 @@ class Component extends DCLogic {
     const projection = d3.geoOrthographic().clipAngle(90).precision(0.3);
     const ease = t => t * t * (3 - 2 * t);
 
-    // Same trick as the hero name: the globe is drawn solid — d3 paths, exactly
-    // the vector art it always was — and the point cloud only exists where the
-    // pointer has disturbed it. Each dot inside the blast radius punches its own
-    // cell out of that render and is redrawn wherever the shove put it, while a
-    // spring drags it home. Bigger radius and a harder shove than the name: the
-    // globe is a much larger object, so a 30px bite would read as nothing at all.
+    // Same trick as the hero name: the globe is drawn as a grid of dots rather
+    // than solid paths, and the pointer shoves every dot inside its radius
+    // outwards while a spring drags it home. Bigger radius and a harder shove
+    // than the name — the globe is a much larger object, so a 30px bite would
+    // read as nothing at all.
     const RADIUS = 150;    // pointer blast radius, px
     const PUSH = 5;        // repulsion strength
     const SPRING = 0.12;   // pull back home
     const DAMP = 0.84;     // velocity decay
-    const EVAP_EVERY = 420;   // ms between dots that leave for good
-    const EVAP_SPEED = 0.34;  // px/frame — a slow drift off the limb
-    const MAX_FREE = 24;      // dots adrift at once
-    // How far a loose dot gets before its cell stops being punched out: past this
-    // the globe closes over the gap and the dot carries on alone, rather than
-    // leaving a hole open for the twenty seconds it takes to clear the disc.
-    const HEAL_AT = 26;
     // The globe is only ever five flat colours, so instead of sampling RGB per
     // dot we render an off-screen pass where each layer writes a distinct red
     // value, then map that back to a palette index. One fillStyle per layer per
@@ -984,33 +907,15 @@ class Component extends DCLogic {
       || (window.matchMedia('(hover:hover) and (pointer:fine)').matches
         && !window.matchMedia('(prefers-reduced-motion:reduce)').matches);
     const mouse = { x: -1e5, y: -1e5, on: false };
-    // Grid pitch is the bite one dot takes, not the ink that draws the globe, so
-    // it costs nothing at rest and only the ~8k cells under the pointer are ever
-    // simulated. The dot is deliberately smaller than its cell: a shoved cell
-    // gives back less ink than it took, which is what makes the disturbed patch
-    // read as a dot cloud with the page showing through instead of solid ground
-    // that happens to have shuffled.
-    const STEP = 3;  // grid pitch, px
-    const DOT = 1.9; // dot size, ~40% of the cell left open
+    // ~20k dots on a pointer device; touch hardware gets a coarser grid, since it
+    // can't scatter them anyway and has to redraw the lot on every spin frame.
+    const STEP = interactive ? 2 : 3;  // dot grid pitch, px
+    const DOT = interactive ? 1.5 : 2; // dot size — under the pitch, so it reads as texture
 
-    const path = d3.geoPath(projection, ctx);
-    const drawSolid = () => {
-      ctx.beginPath(); path({ type: 'Sphere' });
-      ctx.fillStyle = PALETTE[0]; ctx.fill();
-      ctx.beginPath(); path(graticule);
-      ctx.lineWidth = 0.6; ctx.strokeStyle = PALETTE[1]; ctx.stroke();
-      ctx.beginPath(); path(land);
-      ctx.fillStyle = PALETTE[2]; ctx.fill();
-      ctx.lineWidth = 0.7; ctx.strokeStyle = PALETTE[3]; ctx.stroke();
-      ctx.beginPath(); path({ type: 'Sphere' });
-      ctx.lineWidth = 1.2; ctx.strokeStyle = PALETTE[4]; ctx.stroke();
-    };
-
-    // off-screen state: one pixel per cell, so the read-back is grid-sized, not
-    // screen-sized. Only cells on the active list carry physics.
-    let octx, opath, oproj, gw = 0, gh = 0, ox0 = 0, oy0 = 0, sampled = false;
-    let pos = null, tag = null, col = null, st = null, act = null, an = 0, freeN = 0;
-    let er = null, en = 0, bucket = null, bn = null;
+    // off-screen state: one pixel per dot, so the read-back is grid-sized, not
+    // screen-sized
+    let octx, opath, oproj, gw = 0, gh = 0, ox0 = 0, oy0 = 0;
+    let pos = null, tag = null, bucket = null, bn = null, cloudBusy = false;
 
     const buildCloud = () => {
       const R = projection.scale();
@@ -1028,21 +933,20 @@ class Component extends DCLogic {
 
       const n = gw * gh;
       pos = new Float32Array(n * 4); // x, y, vx, vy
-      tag = new Int8Array(n);        // which layer's colour the cell sits on
-      col = new Int8Array(n);        // that colour, frozen when the dot came loose
-      st = new Uint8Array(n);        // 0 home, 1 shoved, 2 gone for good
-      // Capacity is the blast disc plus the dots adrift, never the whole grid.
-      const capB = Math.min(n, Math.ceil(Math.PI * (RADIUS + 2 * STEP) ** 2 / (STEP * STEP)) + MAX_FREE + 64);
-      act = new Int32Array(capB);
-      er = new Int32Array(capB); // the subset whose cells are still punched out
-      bucket = PALETTE.map(() => new Float32Array(capB * 2));
+      tag = new Int8Array(n);
+      bucket = PALETTE.map(() => new Float32Array(n * 2));
       bn = new Int32Array(PALETTE.length);
-      an = 0; en = 0; freeN = 0; sampled = false;
+      for (let r = 0, i = 0; r < gh; r++) {
+        const hy = oy0 + (r + 0.5) * STEP;
+        for (let c = 0; c < gw; c++, i++) {
+          pos[i * 4] = ox0 + (c + 0.5) * STEP;
+          pos[i * 4 + 1] = hy;
+        }
+      }
     };
 
     // Re-render the globe into the tiny off-screen buffer and read which layer
-    // owns each cell. Only needed once per rotation, to colour the dots that come
-    // off it.
+    // owns each dot. Only needed while the globe is actually turning.
     const sampleCloud = () => {
       oproj.rotate(projection.rotate());
       octx.clearRect(0, 0, gw, gh);
@@ -1064,72 +968,24 @@ class Component extends DCLogic {
         const k = Math.round(d[i * 4] / 40) - 1;
         tag[i] = k < 0 ? 0 : (k > 4 ? 4 : k);
       }
-      sampled = true;
     };
 
-    // One dot every few hundred milliseconds cuts loose and drifts off the limb —
-    // at rest that is the only tell that the globe is a cloud and not vector art.
-    // Its cell heals over once it clears the disc.
-    const release = () => {
-      if (!sampled || freeN >= MAX_FREE || an >= act.length) return;
-      const tr = projection.translate();
-      for (let t = 0; t < 40; t++) {
-        const i = (Math.random() * gw * gh) | 0;
-        if (tag[i] < 0 || st[i]) continue;
-        const hx = ox0 + ((i % gw) + 0.5) * STEP, hy = oy0 + (((i / gw) | 0) + 0.5) * STEP;
-        const a = Math.atan2(hy - tr[1], hx - tr[0]) + (Math.random() - 0.5) * 0.8;
-        const b = i * 4;
-        st[i] = 2; freeN++; col[i] = tag[i];
-        pos[b] = hx; pos[b + 1] = hy;
-        pos[b + 2] = Math.cos(a) * EVAP_SPEED; pos[b + 3] = Math.sin(a) * EVAP_SPEED;
-        act[an++] = i;
-        return;
-      }
-    };
-
-    // Returns whether anything is still off its home cell, so the caller knows if
-    // the next frame has to be drawn.
+    // Returns whether anything is still off its home pixel, so the caller knows
+    // if the next frame has to be drawn.
     const drawCloud = () => {
-      const R2 = RADIUS * RADIUS, half = DOT / 2;
-      const lim = act.length;
-
-      // Everything under the pointer joins the simulation; the falloff below is
-      // what makes the square bounding box bite a round hole.
-      if (mouse.on && sampled) {
-        const r0 = Math.max(0, Math.floor((mouse.y - RADIUS - oy0) / STEP));
-        const r1 = Math.min(gh - 1, Math.ceil((mouse.y + RADIUS - oy0) / STEP));
-        for (let r = r0; r <= r1 && an < lim; r++) {
-          const dy = oy0 + (r + 0.5) * STEP - mouse.y;
-          const span = R2 - dy * dy;
-          if (span <= 0) continue;
-          const hw = Math.sqrt(span), row = r * gw;
-          const c0 = Math.max(0, Math.floor((mouse.x - hw - ox0) / STEP));
-          const c1 = Math.min(gw - 1, Math.ceil((mouse.x + hw - ox0) / STEP));
-          for (let c = c0; c <= c1 && an < lim; c++) {
-            const i = row + c;
-            if (tag[i] < 0 || st[i]) continue;
-            st[i] = 1; col[i] = tag[i]; act[an++] = i;
-          }
-        }
-      }
-
+      const half = DOT / 2, R2 = RADIUS * RADIUS;
+      let busy = false;
       for (let k = 0; k < bn.length; k++) bn[k] = 0;
-      let w = 0;
-      en = 0;
-      for (let k = 0; k < an; k++) {
-        const i = act[k], b = i * 4;
-        const hx = ox0 + ((i % gw) + 0.5) * STEP, hy = oy0 + (((i / gw) | 0) + 0.5) * STEP;
-        let x = pos[b], y = pos[b + 1], vx = pos[b + 2], vy = pos[b + 3];
 
-        if (st[i] === 2) {
-          x += vx; y += vy;
-          // Clear of the grid: drop it, and the globe closes over its cell.
-          if (x < ox0 - 40 || y < oy0 - 40 || x > ox0 + gw * STEP + 40 || y > oy0 + gh * STEP + 40) {
-            st[i] = 0; freeN--; continue;
-          }
-          const dx = x - hx, dy = y - hy;
-          if (dx * dx + dy * dy < HEAL_AT * HEAL_AT) er[en++] = i;
-        } else {
+      for (let r = 0, i = 0; r < gh; r++) {
+        const hy = oy0 + (r + 0.5) * STEP;
+        for (let c = 0; c < gw; c++, i++) {
+          const t = tag[i];
+          if (t < 0) continue;
+          const hx = ox0 + (c + 0.5) * STEP;
+          const b = i * 4;
+          let x = pos[b], y = pos[b + 1], vx = pos[b + 2], vy = pos[b + 3];
+
           if (mouse.on) {
             const dx = x - mouse.x, dy = y - mouse.y, d2 = dx * dx + dy * dy;
             if (d2 < R2) {
@@ -1138,34 +994,21 @@ class Component extends DCLogic {
               vx += dx * f; vy += dy * f;
             }
           }
-          vx = (vx + (hx - x) * SPRING) * DAMP;
-          vy = (vy + (hy - y) * SPRING) * DAMP;
-          x += vx; y += vy;
-          const ox = x - hx, oy = y - hy;
-          // Home and still: leave the list, and the solid render owns it again.
-          if (ox * ox + oy * oy < 0.02 && vx * vx + vy * vy < 0.02) { st[i] = 0; continue; }
-          er[en++] = i;
-        }
+          // Home and idle: skip the spring maths entirely. Most dots are here on
+          // most frames, and this globe carries ~20k of them.
+          if (vx || vy || x !== hx || y !== hy) {
+            vx = (vx + (hx - x) * SPRING) * DAMP;
+            vy = (vy + (hy - y) * SPRING) * DAMP;
+            x += vx; y += vy;
+            const ox = x - hx, oy = y - hy;
+            if (ox * ox + oy * oy > 0.02 || vx * vx + vy * vy > 0.02) busy = true;
+            else { x = hx; y = hy; vx = 0; vy = 0; }
+            pos[b] = x; pos[b + 1] = y; pos[b + 2] = vx; pos[b + 3] = vy;
+          }
 
-        pos[b] = x; pos[b + 1] = y; pos[b + 2] = vx; pos[b + 3] = vy;
-        act[w++] = i;
-        const t = col[i] < 0 ? 0 : col[i], q = bucket[t], j = bn[t]++;
-        q[j * 2] = x; q[j * 2 + 1] = y;
-      }
-      an = w;
-      if (!an) return false;
-
-      // Punch every disturbed cell out of the solid globe, then lay those dots
-      // back down where they have got to. One path per pass, filled once.
-      if (en) {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        for (let k = 0; k < en; k++) {
-          const i = er[k];
-          ctx.rect(ox0 + (i % gw) * STEP, oy0 + ((i / gw) | 0) * STEP, STEP, STEP);
+          const q = bucket[t], j = bn[t]++;
+          q[j * 2] = x; q[j * 2 + 1] = y;
         }
-        ctx.fill();
-        ctx.globalCompositeOperation = 'source-over';
       }
 
       for (let k = 0; k < bucket.length; k++) {
@@ -1176,7 +1019,7 @@ class Component extends DCLogic {
         for (let j = 0; j < count; j++) ctx.rect(q[j * 2] - half, q[j * 2 + 1] - half, DOT, DOT);
         ctx.fill();
       }
-      return true;
+      return busy;
     };
 
     let W = 0, H = 0, dpr = 1;
@@ -1335,16 +1178,15 @@ class Component extends DCLogic {
       // the place name means nothing while the globe is free-spinning
       if (placeEl) placeEl.style.opacity = idle ? '0' : '1';
 
-      // Turning, or dots still adrift, or the pointer is over it: anything else
-      // and last frame's pixels are still correct.
+      // Turning, or dots still on their way home, or the pointer is over it:
+      // anything else and last frame's pixels are still correct.
       const turning = settled < 3 || !!spinVel || !!spinOff;
-      if (turning || an || mouse.on) {
+      if (turning || cloudBusy || mouse.on) {
         projection.rotate([-(cur[0] + spinOff), -cur[1]]);
         ctx.clearRect(0, 0, W, H);
-        drawSolid();
 
-        if (turning || !sampled) sampleCloud();
-        drawCloud();
+        if (turning) sampleCloud();
+        cloudBusy = drawCloud();
 
         const center = [-projection.rotate()[0], -projection.rotate()[1]];
         const waypoints = pts || flat();
@@ -1380,7 +1222,6 @@ class Component extends DCLogic {
       window.addEventListener('mouseout', onLeave);
       this._onGlobeMove = onMove;
       this._onGlobeLeave = onLeave;
-      this._globeEvap = setInterval(() => { if (!this._dead) release(); }, EVAP_EVERY);
     }
 
     this._raf = requestAnimationFrame(frame);
