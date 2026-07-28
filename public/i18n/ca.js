@@ -68,7 +68,7 @@
     ],
     toolkit: [
       { group: "IA / ML", items: ["Orquestració de LLM (GPT, Claude, models oberts)", "DSPy (GEPA, MIPROv2)", "RAG i cerca semàntica", "XGBoost / scikit-learn", "sentence-transformers / embeddings", "Resolució d'entitats i clustering", "Avaluació i mètriques"] },
-      { group: "Enginyeria / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS (serverless)", "Postgres · S3", "Argilla (humà dins el bucle)", "OpenTelemetry", "uv · ruff", "Servidors MCP"] },
+      { group: "Enginyeria / MLOps", items: ["Python", "Airflow", "FastAPI", "AWS (serverless)", "Postgres", "S3", "Argilla (humà dins el bucle)", "OpenTelemetry", "uv · ruff", "Servidors MCP"] },
     ],
     languages: [
       { name: "Français", level: "Natiu", flag: "fr" }, { name: "English", level: "Fluid · C2", flag: "en" },
