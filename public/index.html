@@ -1308,6 +1308,19 @@ class Component extends DCLogic {
     let sCur = scan(), lastT = 0;
     const SCROLL_EASE = 0.09;
 
+    // Reading down the page walks the point of view from north of the subject to
+    // south of it — the poles swing, the horizon leans. Deliberately small: this
+    // is a change of vantage, not a tumble.
+    // The offset is divided by `zoom` before use, because at a country-sized crop
+    // the same few degrees would push the highlighted city clean off the canvas.
+    const TILT_MAX = 8; // deg either side of the city's own latitude
+    const scrollP = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      return max > 0 ? Math.min(1, Math.max(0, h.scrollTop / max)) : 0;
+    };
+    let tilt = (0.5 - scrollP()) * 2 * TILT_MAX;
+
     const frame = (now) => {
       if (this._dead) return;
       // Every easing rate below is written per 60fps frame, then rescaled to the
@@ -1377,11 +1390,16 @@ class Component extends DCLogic {
       const zooming = Math.abs(zoomTarget - zoom) > 0.0015;
       if (zooming) zoom += (zoomTarget - zoom) * k(0.05); else zoom = zoomTarget;
 
-      if (repaint || settled < 3 || zooming || spinVel || spinOff) {
+      const tiltTarget = (0.5 - scrollP()) * 2 * TILT_MAX;
+      const tilting = Math.abs(tiltTarget - tilt) > 0.01;
+      if (tilting) tilt += (tiltTarget - tilt) * k(0.07); else tilt = tiltTarget;
+      const tiltEff = tilt / zoom;
+
+      if (repaint || settled < 3 || zooming || tilting || spinVel || spinOff) {
         repaint = false;
         const pal = palette();
         projection.scale(baseR * zoom);
-        projection.rotate([-(cur[0] + spinOff), -cur[1]]);
+        projection.rotate([-(cur[0] + spinOff), -(cur[1] + tiltEff)]);
         ctx.clearRect(0, 0, W, H);
 
         ctx.beginPath(); path({ type: 'Sphere' });
