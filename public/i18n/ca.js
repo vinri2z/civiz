@@ -5,7 +5,7 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).ca = {
     code: "CA", label: "Català",
-    nav: { about: "sobre mi", work: "treballs", skills: "aptituds", timeline: "trajectòria", contact: "contacte", theme: "Tema clar o fosc" },
+    nav: { about: "sobre mi", work: "treballs", skills: "aptituds", timeline: "trajectòria", contact: "contacte", theme: "Tema clar o fosc", menu: "Menú" },
     hero: { loc: "València, Espanya", pron: "Ell", title: "Data Scientist Sènior · Enginyer d'IA", tag: "Aplicacions LLM", email: "Correu", scroll: "DESPLAÇA", spin: "DESPLAÇA DE COSTAT PER GIRAR",
       summary: "Enginyer de machine learning i programari amb més de 6 anys convertint grans corpus de text —regulacions, informes anuals i divulgacions corporatives— en dades estructurades i consultables. Construeixo tot el camí: filtre clàssic, extractor amb LLM i l'arnès d'avaluació que el mesura." },
     about: { label: "// sobre mi", h1: "Ús ètic de la ", hAcc: "IA", h2: ".", stat: "anys en ML i programari",

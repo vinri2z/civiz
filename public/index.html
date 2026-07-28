@@ -307,10 +307,15 @@
   @media (max-width:760px){
     main>section{padding-left:18px !important;padding-right:18px !important;padding-top:70px !important;padding-bottom:70px !important;scroll-margin-top:120px}
     main>section:first-child{padding-top:128px !important;padding-bottom:60px !important;min-height:auto !important}
-    header nav{padding:11px 18px !important;gap:10px !important;flex-wrap:wrap}
-    header nav>div:last-child{width:100%;flex-wrap:wrap;justify-content:space-between;gap:8px 10px !important;font-size:11px !important}
+    header nav{padding:11px 18px !important;gap:10px !important}
     header nav a[href^="mailto:"]{padding:6px 12px !important}
+    [data-nav-links]{display:none !important}
+    [data-nav-toggle]{display:inline-flex !important}
     .cv-card{padding:22px 20px !important}
+  }
+  @media (min-width:761px){
+    [data-nav-toggle]{display:none !important}
+    [data-mobile-menu]{display:none !important}
   }
   /* Same breakpoint as NARROW_PX: once the timeline is one full-width column the
      pill floats over its cards, and every card already names its own city. */
@@ -347,11 +352,13 @@
       Vincent Rizzo
     </a>
     <div style="display:flex;align-items:center;gap:22px;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em">
-      <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
-      <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
-      <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
-      <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
-      <a href="{{ hrefContact }}" onClick="{{ onNavContact }}" data-nav="contact" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:var(--btn-bg);color:var(--btn-fg);font-weight:700">{{ t.nav.contact }}</a>
+      <div data-nav-links="" style="display:flex;align-items:center;gap:22px">
+        <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.about }}</a>
+        <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
+        <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
+        <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
+        <a href="{{ hrefContact }}" onClick="{{ onNavContact }}" data-nav="contact" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:var(--btn-bg);color:var(--btn-fg);font-weight:700">{{ t.nav.contact }}</a>
+      </div>
       <!-- Wired by the boot script in <head>, not by the component: the palette
            is CSS-only, so the click needs no state here. -->
       <button data-theme-toggle="" aria-label="{{ t.nav.theme }}" title="{{ t.nav.theme }}" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:34px;height:31px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-8);transition:all .2s" style-hover="border-color:var(--border-hover);color:var(--ac-ink)">
@@ -374,8 +381,20 @@
           </div>
         </sc-if>
       </div>
+      <button data-nav-toggle="" onClick="{{ onMobileToggle }}" aria-label="{{ t.nav.menu }}" title="{{ t.nav.menu }}" style="display:none;cursor:pointer;align-items:center;justify-content:center;width:34px;height:31px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-8);transition:all .2s" style-hover="border-color:var(--border-hover);color:var(--ac-ink)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
     </div>
   </nav>
+  <sc-if value="{{ mobileOpen }}" hint-placeholder-val="{{ false }}">
+    <div data-mobile-menu="" style="position:absolute;top:100%;left:0;right:0;padding:6px 18px 18px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 18px 40px var(--shadow-menu);display:flex;flex-direction:column;gap:2px;font-family:'JetBrains Mono';font-size:13px">
+      <a href="{{ hrefAbout }}" onClick="{{ onNavAbout }}" data-nav="about" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.about }}</a>
+      <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.work }}</a>
+      <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.skills }}</a>
+      <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.timeline }}</a>
+      <a href="{{ hrefContact }}" onClick="{{ onNavContact }}" data-nav="contact" style="padding:12px 6px;color:var(--ac-ink);font-weight:700">{{ t.nav.contact }}</a>
+    </div>
+  </sc-if>
 </header>
 
 <main id="top" style="position:relative;z-index:1">
@@ -723,6 +742,7 @@ class Component extends DCLogic {
   state = {
     expanded: {},
     langOpen: false,
+    mobileOpen: false,
     lang: (typeof localStorage !== 'undefined' && localStorage.getItem('cv-lang')) || null,
     vw: typeof window !== 'undefined' ? window.innerWidth : 1200,
     cardH: {},
@@ -888,6 +908,7 @@ class Component extends DCLogic {
     if (e) e.preventDefault();
     history.pushState(null, '', this.sectionHref(id, extra));
     this.scrollToTarget(id, extra && extra.p, 'smooth');
+    if (this.state.mobileOpen) this.setState({ mobileOpen: false });
   }
 
   // Prefers the element tagged with the shared project key over the bare
@@ -981,9 +1002,12 @@ class Component extends DCLogic {
     onScroll();
 
     const onDoc = (e) => {
-      if (!this.state.langOpen) return;
-      if (e.target.closest && e.target.closest('[data-lang-menu]')) return;
-      this.setState({ langOpen: false });
+      if (this.state.langOpen && !(e.target.closest && e.target.closest('[data-lang-menu]'))) {
+        this.setState({ langOpen: false });
+      }
+      if (this.state.mobileOpen && !(e.target.closest && (e.target.closest('[data-mobile-menu]') || e.target.closest('[data-nav-toggle]')))) {
+        this.setState({ mobileOpen: false });
+      }
     };
     document.addEventListener('click', onDoc);
     this._onDoc = onDoc;
@@ -1981,6 +2005,8 @@ class Component extends DCLogic {
       beyond: t.beyond.map((label, i) => this.chip(label, this.BEYOND_TECH[i])),
       langOpen: !!this.state.langOpen,
       onLangToggle: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ langOpen: !s.langOpen })); },
+      mobileOpen: !!this.state.mobileOpen,
+      onMobileToggle: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ mobileOpen: !s.mobileOpen })); },
       hrefAbout, hrefWork, hrefSkills, hrefExperience, hrefContact,
       onNavAbout, onNavWork, onNavSkills, onNavExperience, onNavContact,
       onCopyEmail: () => this.copyEmail(profile.links.email),
