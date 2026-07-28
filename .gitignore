@@ -6,3 +6,7 @@ out/
 .omc/
 .vercel
 .playwright-mcp/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
