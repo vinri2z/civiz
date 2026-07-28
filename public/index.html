@@ -247,7 +247,7 @@
      as an <img>, so every mark — the projects' own single-path logos and the
      hand-drawn concept icons alike — takes the chip's ink colour and reads in
      both themes. Brand hexes are deliberately not used: fifteen palettes inside
-     a page built on one green would be noise, and several of them (uv, ruff,
+     a page built on one green would be noise, and several of them (ruff,
      GitHub near-black) fail against one theme or the other.
      The chips themselves are classes, not inline styles like the rest of the
      page: each one renders twice below (linked and unlinked, since sc-if has no
@@ -270,6 +270,8 @@
   .ic-awslambda{--ic:url(assets/icons/awslambda.svg)}
   .ic-huggingface{--ic:url(assets/icons/huggingface.svg)}
   .ic-opentelemetry{--ic:url(assets/icons/opentelemetry.svg)}
+  .ic-uv{--ic:url(assets/icons/uv.svg)}
+  .ic-modelcontextprotocol{--ic:url(assets/icons/modelcontextprotocol.svg)}
   .ic-tooling{--ic:url(assets/icons/tooling.svg)}
   .ic-llm{--ic:url(assets/icons/llm.svg)}
   .ic-dspy{--ic:url(assets/icons/dspy.svg)}
@@ -813,15 +815,16 @@ class Component extends DCLogic {
     bedrock:    { ic: "ic-amazonwebservices", href: "https://aws.amazon.com/bedrock/" },
     lambda:     { ic: "ic-awslambda",         href: "https://aws.amazon.com/lambda/" },
     s3:         { ic: "ic-amazons3",          href: "https://aws.amazon.com/s3/" },
-    // scikit-learn's and uv's own marks carry micro-text and a solid block
-    // respectively — both collapse into a smudge at chip size, so these two keep a
-    // concept mark and let the link carry the attribution instead.
+    // scikit-learn's own mark carries micro-text that collapses into a smudge
+    // at chip size, so it keeps a concept mark and lets the link carry the
+    // attribution instead.
     sklearn:    { ic: "ic-boost",             href: "https://scikit-learn.org" },
     boost:      { ic: "ic-boost",             href: "https://xgboost.readthedocs.io" },
     sbert:      { ic: "ic-huggingface",       href: "https://sbert.net" },
     matryoshka: { ic: "ic-embeddings",        href: "https://huggingface.co/blog/matryoshka" },
     otel:       { ic: "ic-opentelemetry",     href: "https://opentelemetry.io" },
-    uv:         { ic: "ic-tooling",           href: "https://docs.astral.sh/uv/" },
+    uv:         { ic: "ic-uv",                href: "https://docs.astral.sh/uv/" },
+    mcp:        { ic: "ic-modelcontextprotocol", href: "https://modelcontextprotocol.io" },
     dspy:       { ic: "ic-dspy",              href: "https://dspy.ai" },
     bertopic:   { ic: "ic-bertopic",          href: "https://maartengr.github.io/BERTopic/" },
     cluster:    { ic: "ic-cluster",           href: "https://umap-learn.readthedocs.io" },
@@ -850,7 +853,7 @@ class Component extends DCLogic {
   // the tech behind them is not.
   TOOLKIT_TECH = [
     ["llm", "dspy", "rag", "sklearn", "sbert", "entityres", "eval"],
-    ["python", "airflow", "fastapi", "aws", "postgres", "argilla", "otel", "uv"],
+    ["python", "airflow", "fastapi", "aws", "postgres", "argilla", "otel", "uv", "mcp"],
   ];
   BEYOND_TECH = ["remote", "eval", "talks", "review"];
 
