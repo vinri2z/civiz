@@ -10,12 +10,12 @@ CC0; each mark remains the trademark of its owner and is used here only to name
 the tool it stands for):
 
 `python` `fastapi` `apacheairflow` `postgresql` `huggingface` `opentelemetry`
-`uv` `modelcontextprotocol` (v15) · `amazonwebservices` `amazons3` `awslambda`
-(v13 — Amazon's marks were removed from later releases).
+`uv` `modelcontextprotocol` `mongodb` (v15) · `amazonwebservices` `amazons3`
+`awslambda` (v13 — Amazon's marks were removed from later releases).
 
 **Concept marks** — drawn for this page, for techniques with no logo of their
-own: `llm` `dspy` `rag` `bertopic` `cluster` `embeddings` `ner` `eval` `argilla`
-`entityres` `boost` `tooling` `remote` `talks` `review`.
+own: `llm` `dspy` `rag` `bertopic` `cluster` `embeddings` `graph` `ner` `eval`
+`argilla` `entityres` `boost` `tooling` `remote` `talks` `review`.
 
 One brand mark is deliberately *not* used: scikit-learn's carries micro-text
 that collapses into a smudge at 15px. That chip shows a concept mark and lets

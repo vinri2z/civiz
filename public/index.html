@@ -290,6 +290,8 @@
   .ic-remote{--ic:url(assets/icons/remote.svg)}
   .ic-talks{--ic:url(assets/icons/talks.svg)}
   .ic-review{--ic:url(assets/icons/review.svg)}
+  .ic-mongodb{--ic:url(assets/icons/mongodb.svg)}
+  .ic-graph{--ic:url(assets/icons/graph.svg)}
   body{background:var(--bg);color:var(--ink-3);font-family:'Hanken Grotesk',system-ui,sans-serif;line-height:1.5;overflow-x:hidden}
   a{color:var(--ac);text-decoration:none}
   a:hover{color:var(--ac-deep)}
@@ -834,6 +836,9 @@ class Component extends DCLogic {
     ner:        { ic: "ic-ner",               href: "https://github.com/tomaarsen/SpanMarkerNER" },
     argilla:    { ic: "ic-argilla",           href: "https://argilla.io" },
     rag:        { ic: "ic-rag",               href: "https://arxiv.org/abs/2005.11401" },
+    mongodb:    { ic: "ic-mongodb",           href: "https://www.mongodb.com/docs/atlas/atlas-search/" },
+    rankfusion: { ic: "ic-embeddings",        href: "https://www.mongodb.com/docs/manual/reference/operator/aggregation/rankFusion/" },
+    graph:      { ic: "ic-graph" },
     llm:        { ic: "ic-llm" },
     eval:       { ic: "ic-eval" },
     entityres:  { ic: "ic-entityres" },
@@ -870,9 +875,10 @@ class Component extends DCLogic {
       deck: "https://www.slideshare.net/slideshow/navigating-esg-challenges-with-ai-and-large-language-models/288662817",
       // the talk this work was presented at, shown wherever the project appears
       logoId: "logo-pycones-vigo", logoSrc: "assets/pycon-es-vigo-logo.png", logoLabel: "PyCon España 2024 · Vigo" },
-    { key: "regintel",
-      stack: [["RAG", "rag"], ["LLM orchestration", "llm"], ["Bedrock", "bedrock"],
-              ["Evaluation harnesses", "eval"]] },
+    { key: "regexplore",
+      stack: [["MongoDB Atlas Search", "mongodb"], ["$rankFusion · $vectorSearch", "rankfusion"],
+              ["LLM query interpretation", "llm"], ["Knowledge graph", "graph"],
+              ["MCP · Skybridge", "mcp"], ["FastAPI", "fastapi"]] },
     { key: "platform",
       stack: [["AWS serverless", "lambda"], ["FastAPI", "fastapi"], ["Argilla", "argilla"],
               ["Postgres", "postgres"], ["S3", "s3"]] },
@@ -985,7 +991,16 @@ class Component extends DCLogic {
       const hint = document.querySelector('[data-scroll-hint]');
       // Fade out well before the literal last pixel: subpixel rounding and
       // zoom leave a few px of slack the old 4px window never reached.
-      if (hint) hint.style.opacity = (max - h.scrollTop) < 80 ? '0' : '1';
+      // The bob animation pulses opacity, and animations outrank inline styles,
+      // so hiding means dropping the animation too - not just setting opacity.
+      if (hint) {
+        const hide = (max - h.scrollTop) < 80;
+        if (hint.dataset.hidden !== String(hide)) {
+          hint.dataset.hidden = String(hide);
+          hint.style.animation = hide ? 'none' : 'bob 2.4s ease-in-out infinite';
+          hint.style.opacity = hide ? '0' : '';
+        }
+      }
       document.querySelectorAll('[data-parallax]').forEach(el => {
         const s = parseFloat(el.dataset.parallax) || 0.1;
         const base = el.dataset.baseX ? 'translateX(' + el.dataset.baseX + ') ' : '';
@@ -1787,17 +1802,18 @@ class Component extends DCLogic {
       ...LEFT_TEXT, bw: BW, ck: 'vol-' + i, gap: gapFor('vol-' + i, VOL_GAP), i,
     }));
 
-    // The four Work-section projects, each at the half-year it was built in.
-    // That order is the projects' own — it doesn't track the Work section's card
-    // order and it leaves a gap in H2 2024 — so every slot names its project by
-    // key. Copy still comes from the Work cards (L.projects), which stay the
-    // single source of truth for titles; only dates and assets live here.
+    // The four Work-section projects, each over the span it was built in — the
+    // half-year it took, or the single month where that's the truth. That order
+    // is the projects' own — it doesn't track the Work section's card order and
+    // it leaves a gap in H2 2024 — so every slot names its project by key. Copy
+    // still comes from the Work cards (L.projects), which stay the single source
+    // of truth for titles; only dates and assets live here.
     const yellow = "var(--proj)";
     const projBase = [
       { key: "iro", from: [2024, 1], to: [2024, 6], ...seg(2024.0, 2024.5) },
       { key: "platform", from: [2025, 1], to: [2025, 6], ...seg(2025.0, 2025.5) },
       { key: "targets", from: [2025, 7], to: [2025, 12], ...seg(2025.5, 2026.0) },
-      { key: "regintel", from: [2026, 1], to: [2026, 6], ...seg(2026.0, 2026.5) },
+      { key: "regexplore", from: [2026, 5], to: [2026, 5], ...seg(2026.333, 2026.417) },
     ];
     const proj = projBase.map((p, i) => {
       const at = this.projectIndex(p.key);
