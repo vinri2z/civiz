@@ -303,8 +303,11 @@
   @keyframes gridpan{0%{background-position:0 0}100%{background-position:44px 44px}}
   @keyframes toastIn{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
   main>section{scroll-margin-top:84px}
-  /* Dragging the globe must not paint a text selection across whatever card the
-     pointer happens to be over. */
+  /* The globe is grabbable anywhere its disc shows, and it sits under the whole
+     page, so the cursor is switched from JS on the disc's geometry rather than by
+     hovering an element. Dragging must not paint a text selection across whatever
+     card the pointer happens to be over. */
+  body[data-globe-hover] *{cursor:pointer !important}
   body[data-globe-drag] *{cursor:grabbing !important;user-select:none !important}
   /* Phone layout. Everything on the page is styled inline, so these overrides
      have to be !important to outrank the style attributes they correct. The
@@ -413,7 +416,7 @@
            on the canvas. Without JS (or with reduced motion / no fine pointer)
            the text below stays as it is and the canvas stays empty. -->
       <h1 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);position:relative;font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(48px,8.5vw,104px);line-height:0.98;letter-spacing:-.03em;color:var(--ink-1);text-wrap:balance">
-        <span data-name-ink="">Vincent<br>Rizzo</span>
+        <span data-name-ink="" style="cursor:pointer">Vincent<br>Rizzo</span>
         <canvas data-name-cloud="" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas>
       </h1>
       <div data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:14px">
@@ -1069,6 +1072,7 @@ class Component extends DCLogic {
       window.removeEventListener('pointerup', this._onGlobeUp);
       window.removeEventListener('pointercancel', this._onGlobeUp);
       document.body.removeAttribute('data-globe-drag');
+      document.body.removeAttribute('data-globe-hover');
     }
     if (this._onVW) window.removeEventListener('resize', this._onVW);
     if (this._vwRaf) cancelAnimationFrame(this._vwRaf);
@@ -1460,11 +1464,28 @@ class Component extends DCLogic {
     let dx0 = 0, dy0 = 0, px = 0, py = 0, pending = false, pid = null;
     const NO_DRAG = 'a,button,input,select,textarea,label,summary,[data-nav-toggle],[data-lang-menu]';
     const onDown = e => {
+      // Mouse and trackpad only: a touch drag is the page's own scroll gesture,
+      // and it would spin the globe on every flick.
+      if (e.pointerType && e.pointerType !== 'mouse') return;
       if (e.button !== 0 || e.target.closest(NO_DRAG)) return;
       pending = true; dragging = false; pid = e.pointerId;
       dx0 = px = e.clientX; dy0 = py = e.clientY;
     };
+    // Hover cursor: the disc's own geometry decides, since no element can be
+    // hovered for it (see the CSS note on body[data-globe-hover]).
+    let hovering = false;
+    const overGlobe = e => {
+      const t = projection.translate(), r = projection.scale();
+      const dx = e.clientX - t[0], dy = e.clientY - t[1];
+      return dx * dx + dy * dy <= r * r;
+    };
     const onMove = e => {
+      const over = !dragging && overGlobe(e);
+      if (over !== hovering) {
+        hovering = over;
+        if (over) document.body.setAttribute('data-globe-hover', '');
+        else document.body.removeAttribute('data-globe-hover');
+      }
       if (!pending || e.pointerId !== pid) return;
       if (!dragging) {
         if (Math.abs(e.clientX - dx0) + Math.abs(e.clientY - dy0) < 5) return;
@@ -1475,7 +1496,10 @@ class Component extends DCLogic {
       }
       // Degrees per pixel shrink as the globe is zoomed in, so the land keeps
       // pace with the cursor instead of racing it at high magnification.
-      const per = 0.32 / Math.max(0.5, zoom * userZoom);
+      // Degrees per pixel at the centre of a sphere of the current on-screen
+      // radius (180/π ≈ 57.3), so the land keeps pace with the cursor at any zoom
+      // instead of racing it or lagging behind.
+      const per = 57.3 / Math.max(80, baseR * zoom * userZoom);
       // The grabbed point has to travel with the pointer, so the view centre goes
       // the other way: pointer right means the globe's centre moves west.
       const mx = -(e.clientX - px) * per, my = (e.clientY - py) * per;
