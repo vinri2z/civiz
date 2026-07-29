@@ -6,7 +6,7 @@
   (w.CV_I18N = w.CV_I18N || {}).ca = {
     code: "CA", label: "Català",
     nav: { about: "sobre mi", work: "treballs", skills: "aptituds", timeline: "trajectòria", contact: "contacte", theme: "Tema clar o fosc", menu: "Menú" },
-    hero: { loc: "València, Espanya", pron: "Ell", title: "Data Scientist Sènior · Enginyer d'IA", tag: "Aplicacions LLM", email: "Correu", scroll: "DESPLAÇA", spin: "DESPLAÇA DE COSTAT PER GIRAR",
+    hero: { loc: "València, Espanya", pron: "Ell", title: "Data Scientist Sènior · Enginyer d'IA", tag: "Aplicacions LLM", email: "Correu", scroll: "DESPLAÇA",
       summary: "Enginyer de machine learning i programari amb més de 6 anys convertint grans corpus de text —regulacions, informes anuals i divulgacions corporatives— en dades estructurades i consultables. Construeixo tot el camí: filtre clàssic, extractor amb LLM i l'arnès d'avaluació que el mesura." },
     about: { label: "// sobre mi", h1: "Ús ètic de la ", hAcc: "IA", h2: ".", stat: "anys en ML i programari",
       body: "Treballo per treure el màxim partit als LLM on té sentit, mantenint sempre baranes de seguretat, mètriques estrictes i una persona dins el bucle." },
@@ -58,13 +58,6 @@
           "Dos modes de recuperació sobre MongoDB Atlas: una porta lèxica sensible als sinònims amb reforç de frases quan es busca una norma concreta, i un híbrid paginat amb $rankFusion natiu sobre una branca de text complet i una branca $vectorSearch auto-incrustada per a l'exploració temàtica.",
           "Resultats acoblats com a graf i no com a llista: arestes regulació→tema, →indústria i →emissor→país, més enllaços regulació→regulació curats perquè cada resultat arribi amb el seu segon salt.",
           "Relacions entre temes de l'ontologia superposades (drives, mitigates, impacts), pontades des dels noms de tema als codis de taxonomia que indexen el graf: la taxonomia ESG es llegeix com un graf, no com una escala.",
-        ] },
-      { tag: "MLOps · plataforma", title: "Plataforma ML i infraestructura d'avaluació",
-        blurb: "La infraestructura de la qual depenen els models: inferència serverless, conjunts d'avaluació i etiquetatge amb humà dins el bucle.",
-        bullets: [
-          "Inferència ML serverless a AWS i serveis back-end en Python (FastAPI).",
-          "MLOps amb humà dins el bucle amb Argilla; conjunts de referència curats per entrenar filtres i avaluar el pipeline.",
-          "Estat en JSON sobre emmagatzematge d'objectes (S3 / Postgres), instrumentat d'extrem a extrem.",
         ] },
     ],
     toolkit: [

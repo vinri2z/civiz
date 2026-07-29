@@ -6,7 +6,7 @@
   (w.CV_I18N = w.CV_I18N || {}).en = {
     code: "EN", label: "English",
     nav: { about: "about", work: "work", skills: "skills", timeline: "timeline", contact: "contact", theme: "Light or dark theme", menu: "Menu" },
-    hero: { loc: "Valencia, Spain", pron: "He/Him", title: "Senior Data Scientist · AI Engineer", tag: "LLM applications", email: "Email", scroll: "SCROLL", spin: "SCROLL SIDEWAYS TO SPIN",
+    hero: { loc: "Valencia, Spain", pron: "He/Him", title: "Senior Data Scientist · AI Engineer", tag: "LLM applications", email: "Email", scroll: "SCROLL",
       summary: "Machine-learning and software engineer with 6+ years turning large text corpora such as regulations, annual reports and corporate disclosures into structured, queryable data. I build the whole path: classical filter, LLM extractor, and the evaluation harness that measures it." },
     about: { label: "// about", h1: "Ethical use of ", hAcc: "AI", h2: ".", stat: "years in ML & software",
       body: "I work to help us make the most out of LLMs where it applies, and keep always guardrails, strict metrics and a human in the loop." },
@@ -58,13 +58,6 @@
           "Two retrieval modes on MongoDB Atlas: a synonym-aware lexical gate with phrase boosts when one named instrument is wanted, and a paginated hybrid using native $rankFusion over a full-text leg and an auto-embedded $vectorSearch leg for thematic exploration.",
           "Results assembled as a graph rather than a list: regulation→topic, →industry and →issuer→country edges, plus curated regulation→regulation links so a hit arrives with its second hop.",
           "Cross-topic ontology relations layered on top (drives, mitigates, impacts), bridged from topic names to the taxonomy codes the graph is keyed by — so the ESG taxonomy reads as a graph, not a ladder.",
-        ] },
-      { tag: "MLOps · platform", title: "ML Platform & Evaluation Infrastructure",
-        blurb: "The infrastructure the models depend on: serverless inference, evaluation datasets, and human-in-the-loop labeling.",
-        bullets: [
-          "Serverless ML inference on AWS and Python (FastAPI) backend services.",
-          "Human-in-the-loop MLOps with Argilla; curated gold sets for filter training and pipeline evaluation.",
-          "State passed as object-storage JSON (S3 / Postgres), instrumented end-to-end.",
         ] },
     ],
     toolkit: [

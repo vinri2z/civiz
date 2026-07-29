@@ -6,7 +6,7 @@
   (w.CV_I18N = w.CV_I18N || {}).fr = {
     code: "FR", label: "Français",
     nav: { about: "à propos", work: "projets", skills: "compétences", timeline: "historique", contact: "contact", theme: "Thème clair ou sombre" },
-    hero: { loc: "Valence, Espagne", pron: "Il/Lui", title: "Senior Data Scientist · Ingénieur IA", tag: "Applications LLM", email: "E-mail", scroll: "SCROLL", spin: "SCROLL",
+    hero: { loc: "Valence, Espagne", pron: "Il/Lui", title: "Senior Data Scientist · Ingénieur IA", tag: "Applications LLM", email: "E-mail", scroll: "SCROLL",
       summary: "Ingénieur machine learning et logiciel, plus de 6 ans passés à transformer de vastes corpus de textes — réglementations, rapports annuels, publications extra-financières — en données structurées et interrogeables. Je construis toute la chaîne : filtre classique, extracteur LLM et le framework d'évaluation qui le mesure." },
     about: { label: "// usage éthique de l'IA", h1: "Un usage éthique de l'", hAcc: "IA", h2: ".", stat: "ans en Machine Learning et logiciel",
       body: "Je travaille pour que nous tirions le meilleur des LLM là où c'est pertinent, en gardant toujours des garde-fous, des métriques strictes et une supervision humaine." },

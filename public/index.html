@@ -131,9 +131,9 @@
     --vol-text:oklch(0.52 0.11 62);
     --proj:oklch(0.95 0.25 110);
     --proj-title:oklch(0.28 0.02 150);
-    --proj-text:oklch(0.54 0.1 300);
-    --proj-hair:oklch(0.86 0.03 300);
-    --proj-hair-slope:oklch(0.76 0.07 300);
+    --proj-text:var(--ink-8);
+    --proj-hair:var(--hair);
+    --proj-hair-slope:var(--hair-slope);
     --hair:oklch(0.86 0.02 150);
     --hair-slope:oklch(0.78 0.03 150);
     --dash:oklch(0.74 0.02 150);
@@ -213,9 +213,9 @@
     --vol-text:oklch(0.78 0.11 62);
     --proj:oklch(0.9 0.2 110);
     --proj-title:oklch(0.95 0.012 145);
-    --proj-text:oklch(0.74 0.1 300);
-    --proj-hair:oklch(0.36 0.04 300);
-    --proj-hair-slope:oklch(0.45 0.07 300);
+    --proj-text:var(--ink-7);
+    --proj-hair:var(--hair);
+    --proj-hair-slope:var(--hair-slope);
     --hair:oklch(0.36 0.02 150);
     --hair-slope:oklch(0.45 0.03 150);
     --dash:oklch(0.42 0.02 150);
@@ -870,9 +870,6 @@ class Component extends DCLogic {
       stack: [["MongoDB Atlas Search", "mongodb"], ["$rankFusion · $vectorSearch", "rankfusion"],
               ["LLM query interpretation", "llm"], ["Knowledge graph", "graph"],
               ["MCP · Skybridge", "mcp"], ["FastAPI", "fastapi"]] },
-    { key: "platform",
-      stack: [["AWS serverless", "lambda"], ["FastAPI", "fastapi"], ["Argilla", "argilla"],
-              ["Postgres", "postgres"], ["S3", "s3"]] },
   ];
 
   projectIndex(key) {
@@ -915,7 +912,7 @@ class Component extends DCLogic {
   }
 
   // Prefers the element tagged with the shared project key over the bare
-  // section — a `#projects?p=platform` link should land on the Platform card,
+  // section — a `#projects?p=iro` link should land on the IRO card,
   // not just the top of the Work section (same for `#experience?p=...`).
   scrollToTarget(id, key, behavior) {
     const section = document.getElementById(id);
@@ -1066,6 +1063,13 @@ class Component extends DCLogic {
     if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
     if (this._onWheel) window.removeEventListener('wheel', this._onWheel);
+    if (this._onGlobeDown) window.removeEventListener('pointerdown', this._onGlobeDown);
+    if (this._onGlobeMove) window.removeEventListener('pointermove', this._onGlobeMove);
+    if (this._onGlobeUp) {
+      window.removeEventListener('pointerup', this._onGlobeUp);
+      window.removeEventListener('pointercancel', this._onGlobeUp);
+      document.body.removeAttribute('data-globe-drag');
+    }
     if (this._onVW) window.removeEventListener('resize', this._onVW);
     if (this._vwRaf) cancelAnimationFrame(this._vwRaf);
     if (this._onDoc) document.removeEventListener('click', this._onDoc);
@@ -1428,7 +1432,7 @@ class Component extends DCLogic {
     // vertical half of a drag, clamped short of the poles where an orthographic
     // projection turns inside out.
     let spinVel = 0, spinOff = 0, tiltVel = 0, tiltOff = 0, spinIdleFrames = 0;
-    let userZoom = 1, dragging = false;
+    let userZoom = 1, lastUserZoom = 1, dragging = false;
     const TILT_MAX = 62;
     const FREE_FRAMES = 110; // ~1.8s of hands-off before the timeline takes the wheel back
     const onWheel = e => {
@@ -1472,13 +1476,15 @@ class Component extends DCLogic {
       // Degrees per pixel shrink as the globe is zoomed in, so the land keeps
       // pace with the cursor instead of racing it at high magnification.
       const per = 0.32 / Math.max(0.5, zoom * userZoom);
-      const mx = (e.clientX - px) * per, my = (e.clientY - py) * per;
+      // The grabbed point has to travel with the pointer, so the view centre goes
+      // the other way: pointer right means the globe's centre moves west.
+      const mx = -(e.clientX - px) * per, my = (e.clientY - py) * per;
       px = e.clientX; py = e.clientY;
       spinOff += mx;
-      tiltOff = Math.max(-TILT_MAX, Math.min(TILT_MAX, tiltOff - my));
+      tiltOff = Math.max(-TILT_MAX, Math.min(TILT_MAX, tiltOff + my));
       // Carry the last pointer speed into the coast when the button is released.
       spinVel = Math.max(-9, Math.min(9, mx));
-      tiltVel = my ? Math.max(-9, Math.min(9, -my)) : tiltVel;
+      tiltVel = my ? Math.max(-9, Math.min(9, my)) : tiltVel;
       spinIdleFrames = 0;
     };
     const onUp = e => {
@@ -1589,12 +1595,18 @@ class Component extends DCLogic {
 
       const zooming = Math.abs(zoomTarget - zoom) > 0.0015;
       if (zooming) zoom += (zoomTarget - zoom) * k(0.05); else zoom = zoomTarget;
+      // Cmd+scroll rides on top of the timeline's own lean-in; the product is
+      // capped so the two can't compound into a crop of a single coastline.
+      const scaleMul = Math.min(12, zoom * userZoom);
+      const zoomedByUser = Math.abs(userZoom - lastUserZoom) > 0.0005;
+      lastUserZoom = userZoom;
 
-      if (repaint || settled < 3 || zooming || spinVel || spinOff) {
+      if (repaint || settled < 3 || zooming || zoomedByUser || spinVel || tiltVel || spinOff || tiltOff || dragging) {
         repaint = false;
         const pal = palette();
-        projection.scale(baseR * zoom);
-        projection.rotate([-(cur[0] + spinOff), -cur[1]]);
+        projection.scale(baseR * scaleMul);
+        const lat = Math.max(-88, Math.min(88, cur[1] + tiltOff));
+        projection.rotate([-(cur[0] + spinOff), -lat]);
         ctx.clearRect(0, 0, W, H);
 
         ctx.beginPath(); path({ type: 'Sphere' });
@@ -1857,16 +1869,16 @@ class Component extends DCLogic {
       ...LEFT_TEXT, bw: BW, ck: 'vol-' + i, gap: gapFor('vol-' + i, VOL_GAP), i,
     }));
 
-    // The four Work-section projects, each over the span it was built in — the
+    // The three Work-section projects, each over the span it was built in — the
     // half-year it took, or the single month where that's the truth. That order
     // is the projects' own — it doesn't track the Work section's card order and
-    // it leaves a gap in H2 2024 — so every slot names its project by key. Copy
+    // it leaves a gap from H2 2024 through H1 2025 — so every slot names its
+    // project by key. Copy
     // still comes from the Work cards (L.projects), which stay the single source
     // of truth for titles; only dates and assets live here.
     const yellow = "var(--proj)";
     const projBase = [
       { key: "iro", from: [2024, 1], to: [2024, 6], ...seg(2024.0, 2024.5) },
-      { key: "platform", from: [2025, 1], to: [2025, 6], ...seg(2025.0, 2025.5) },
       { key: "targets", from: [2025, 7], to: [2025, 12], ...seg(2025.5, 2026.0) },
       { key: "regexplore", from: [2026, 5], to: [2026, 5], ...seg(2026.333, 2026.417) },
     ];
