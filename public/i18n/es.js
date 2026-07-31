@@ -5,7 +5,7 @@
 (function (w) {
   (w.CV_I18N = w.CV_I18N || {}).es = {
     code: "ES", label: "Español",
-    nav: { about: "sobre mí", work: "trabajo", skills: "aptitudes", timeline: "histórico", contact: "contacto", theme: "Tema claro u oscuro" },
+    nav: { about: "sobre mí", work: "trabajo", skills: "aptitudes", timeline: "histórico", contact: "contacto", theme: "Tema claro u oscuro", menu: "Menú" },
     hero: { loc: "Valencia, España", pron: "Él", title: "Data Scientist Senior · Ingeniero de IA", tag: "Aplicaciones LLM", email: "Correo", scroll: "DESLIZA",
       summary: "Ingeniero de machine learning y software con más de 6 años convirtiendo grandes corpus de texto —regulaciones, informes anuales y divulgaciones corporativas— en datos estructurados y consultables. Construyo el camino completo: filtro clásico, extractor con LLM y el arnés de evaluación que lo mide." },
     about: { label: "// sobre mí", h1: "Uso ético de la ", hAcc: "IA", h2: ".", stat: "años en ML y software",
@@ -58,13 +58,6 @@
           "Dos modos de recuperación sobre MongoDB Atlas: una puerta léxica sensible a sinónimos con refuerzo de frases cuando se busca una norma concreta, y un híbrido paginado con $rankFusion nativo sobre una rama de texto completo y una rama $vectorSearch auto-embebida para la exploración temática.",
           "Resultados ensamblados como grafo y no como lista: aristas regulación→tema, →industria y →emisor→país, más enlaces regulación→regulación curados para que cada resultado llegue con su segundo salto.",
           "Relaciones entre temas de la ontología superpuestas (drives, mitigates, impacts), puenteadas desde los nombres de tema a los códigos de taxonomía que indexan el grafo: la taxonomía ESG se lee como un grafo, no como una escalera.",
-        ] },
-      { tag: "MLOps · plataforma", title: "Plataforma ML e infraestructura de evaluación",
-        blurb: "La infraestructura de la que dependen los modelos: inferencia serverless, conjuntos de evaluación y etiquetado con humano en el bucle.",
-        bullets: [
-          "Inferencia ML serverless en AWS y servicios back-end en Python (FastAPI).",
-          "MLOps con humano en el bucle usando Argilla; conjuntos de referencia curados para entrenar filtros y evaluar el pipeline.",
-          "Estado en JSON sobre almacenamiento de objetos (S3 / Postgres), instrumentado de extremo a extremo.",
         ] },
     ],
     toolkit: [
