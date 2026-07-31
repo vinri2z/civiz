@@ -401,7 +401,7 @@
 <main id="top" style="position:relative;z-index:1">
 
   <!-- HERO -->
-  <section style="position:relative;min-height:100vh;display:flex;align-items:center;padding:150px 32px 90px;overflow-x:hidden">
+  <section style="position:relative;min-height:100vh;display:flex;align-items:center;padding:150px 32px 90px;overflow-x:clip">
     <div data-parallax="0.16" style="position:absolute;top:-8%;right:-6%;width:620px;height:620px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--blob-1),transparent 42%);filter:blur(8px);animation:floatA 16s ease-in-out infinite"></div></div>
     <div data-parallax="0.28" style="position:absolute;bottom:8%;left:-8%;width:520px;height:520px;transition:transform .5s cubic-bezier(.22,.61,.36,1);z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--blob-2),transparent 38%);filter:blur(8px);animation:floatB 19s ease-in-out infinite"></div></div>
     <div style="position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 30% 40%,black,transparent 72%);animation:gridpan 26s linear infinite;z-index:0"></div>
@@ -1468,6 +1468,11 @@ class Component extends DCLogic {
       // and it would spin the globe on every flick.
       if (e.pointerType && e.pointerType !== 'mouse') return;
       if (e.button !== 0 || e.target.closest(NO_DRAG)) return;
+      // Only the earth itself is grabbable: a press that starts off the disc
+      // (over the hero, a card, or empty margins) must let the page scroll and
+      // click normally. Wheel-based scroll and Cmd+wheel zoom still work
+      // anywhere — they're handled by onWheel, not here.
+      if (!overGlobe(e)) return;
       pending = true; dragging = false; pid = e.pointerId;
       dx0 = px = e.clientX; dy0 = py = e.clientY;
     };
