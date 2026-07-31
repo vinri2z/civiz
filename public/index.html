@@ -261,10 +261,11 @@
   .cv-tag{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:11.5px;padding:5px 11px;border-radius:6px;background:var(--accent-soft);color:var(--ac-ink);border:1px solid var(--border-accent-soft)}
   a.cv-tag{color:var(--ac-ink);transition:border-color .2s,color .2s}
   a.cv-tag:hover{border-color:var(--ac-mid);color:var(--ac-deep)}
-  .cv-chip{display:inline-flex;align-items:center;gap:9px;font-size:14.5px;padding:9px 15px;border-radius:10px;background:var(--surface-3);color:var(--ink-5);border:1px solid var(--border-soft)}
+  .cv-chip{display:inline-flex;align-items:center;gap:9px;font-size:14.5px;padding:9px 15px;border-radius:10px;background:var(--surface-3);color:var(--ink-5);border:1px solid var(--border-soft);cursor:default}
   .cv-chip .cv-ic{width:17px;height:17px;opacity:.85}
-  a.cv-chip{color:var(--ink-5);transition:border-color .2s,color .2s}
+  a.cv-chip{color:var(--ink-5);transition:border-color .2s,color .2s;cursor:pointer}
   a.cv-chip:hover{border-color:var(--border-hover);color:var(--ink-3)}
+  span.cv-tag{cursor:default}
   .ic-python{--ic:url(assets/icons/python.svg)}
   .ic-fastapi{--ic:url(assets/icons/fastapi.svg)}
   .ic-apacheairflow{--ic:url(assets/icons/apacheairflow.svg)}
@@ -307,8 +308,8 @@
      page, so the cursor is switched from JS on the disc's geometry rather than by
      hovering an element. Dragging must not paint a text selection across whatever
      card the pointer happens to be over. */
-  body[data-globe-hover] *{cursor:pointer !important}
-  body[data-globe-drag] *{cursor:grabbing !important;user-select:none !important}
+  body[data-globe-hover]{cursor:pointer}
+  body[data-globe-drag]{cursor:grabbing;user-select:none}
   /* Phone layout. Everything on the page is styled inline, so these overrides
      have to be !important to outrank the style attributes they correct. The
      timeline needs more than CSS can give — buildTimeline lays it out again for
