@@ -359,6 +359,7 @@
         <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.work }}</a>
         <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.skills }}</a>
         <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.timeline }}</a>
+        <a href="{{ hrefThoughts }}" onClick="{{ onNavThoughts }}" data-nav="thoughts" style="color:var(--ink-8);opacity:.7;transition:all .25s">{{ t.nav.thoughts }}</a>
         <a href="{{ hrefContact }}" onClick="{{ onNavContact }}" data-nav="contact" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:var(--btn-bg);color:var(--btn-fg);font-weight:700">{{ t.nav.contact }}</a>
       </div>
       <!-- Wired by the boot script in <head>, not by the component: the palette
@@ -394,6 +395,7 @@
       <a href="{{ hrefWork }}" onClick="{{ onNavWork }}" data-nav="projects" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.work }}</a>
       <a href="{{ hrefSkills }}" onClick="{{ onNavSkills }}" data-nav="skills" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.skills }}</a>
       <a href="{{ hrefExperience }}" onClick="{{ onNavExperience }}" data-nav="experience" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.timeline }}</a>
+      <a href="{{ hrefThoughts }}" onClick="{{ onNavThoughts }}" data-nav="thoughts" style="padding:12px 6px;color:var(--ink-4)">{{ t.nav.thoughts }}</a>
       <a href="{{ hrefContact }}" onClick="{{ onNavContact }}" data-nav="contact" style="padding:12px 6px;color:var(--ac-ink);font-weight:700">{{ t.nav.contact }}</a>
     </div>
   </sc-if>
@@ -668,6 +670,88 @@
     </div>
   </section>
 
+  <!-- THOUGHTS -->
+  <section id="thoughts" style="max-width:1120px;margin:0 auto;padding:90px 32px;position:relative">
+    <div data-reveal="" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'JetBrains Mono';font-size:13px;letter-spacing:.05em;color:var(--ac);margin-bottom:14px"><a href="{{ hrefThoughts }}" onClick="{{ onNavThoughts }}" style="color:inherit">{{ t.th.label }}</a></div>
+    <h2 data-reveal="" data-i="1" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(30px,4vw,46px);letter-spacing:-.02em;color:var(--ink-2);margin-bottom:14px">{{ t.th.h }}</h2>
+    <p data-reveal="" data-i="2" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);max-width:620px;font-size:17px;color:var(--ink-7);margin-bottom:48px">{{ t.th.p }}</p>
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <sc-for list="{{ posts }}" as="post" hint-placeholder-count="4">
+        <div class="cv-card" data-reveal="" data-i="{{ $index }}" data-post-key="{{ post.slug }}" style="opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1);border:1px solid var(--border);border-radius:20px;background:var(--surface);padding:34px 34px 30px;box-shadow:0 1px 0 var(--shadow-card);scroll-margin-top:90px">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;font-family:'JetBrains Mono';font-size:12px;letter-spacing:.02em;color:var(--ac)">
+            <span>{{ post.dateLabel }}</span>
+            <span style="width:3px;height:3px;border-radius:50%;background:var(--ink-9)"></span>
+            <span>{{ post.minutes }} {{ t.th.readTime }}</span>
+          </div>
+          <h3 style="font-family:'Bricolage Grotesque';font-weight:600;font-size:clamp(22px,2.8vw,30px);letter-spacing:-.02em;color:var(--ink-2);line-height:1.12;max-width:760px">{{ post.title }}</h3>
+          <p style="margin-top:14px;max-width:780px;font-size:16.5px;line-height:1.62;color:var(--ink-6);text-wrap:pretty">{{ post.description }}</p>
+          <sc-if value="{{ post.open }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:24px;border-top:1px solid var(--border-soft);padding-top:24px;max-width:780px;font-size:16px;line-height:1.68;color:var(--ink-5)">
+              <sc-for list="{{ post.blocks }}" as="blk" hint-placeholder-count="6">
+                <sc-if value="{{ blk.isP }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin-bottom:18px;text-wrap:pretty">
+                    <sc-for list="{{ blk.segs }}" as="sg" hint-placeholder-count="3">
+                      <sc-if value="{{ sg.isBold }}" hint-placeholder-val="{{ false }}"><strong>{{ sg.text }}</strong></sc-if>
+                      <sc-if value="{{ sg.isItalic }}" hint-placeholder-val="{{ false }}"><em>{{ sg.text }}</em></sc-if>
+                      <sc-if value="{{ sg.isMono }}" hint-placeholder-val="{{ false }}"><code style="font-family:'JetBrains Mono';font-size:.92em;background:var(--surface-3);padding:1px 5px;border-radius:4px">{{ sg.text }}</code></sc-if>
+                      <sc-if value="{{ sg.isLink }}" hint-placeholder-val="{{ false }}"><a href="{{ sg.href }}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">{{ sg.text }}</a></sc-if>
+                      <sc-if value="{{ sg.isPlain }}" hint-placeholder-val="{{ true }}"><span>{{ sg.text }}</span></sc-if>
+                    </sc-for>
+                  </p>
+                </sc-if>
+                <sc-if value="{{ blk.isH2 }}" hint-placeholder-val="{{ false }}">
+                  <h4 style="margin:30px 0 14px;font-family:'Bricolage Grotesque';font-weight:600;font-size:21px;color:var(--ink-2)">{{ blk.segs[0].text }}</h4>
+                </sc-if>
+                <sc-if value="{{ blk.isH3 }}" hint-placeholder-val="{{ false }}">
+                  <h5 style="margin:24px 0 12px;font-family:'Bricolage Grotesque';font-weight:600;font-size:18px;color:var(--ink-3)">{{ blk.segs[0].text }}</h5>
+                </sc-if>
+                <sc-if value="{{ blk.isUl }}" hint-placeholder-val="{{ false }}">
+                  <ul style="margin:0 0 18px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:12px">
+                    <sc-for list="{{ blk.items }}" as="item" hint-placeholder-count="3">
+                      <li style="display:flex;gap:12px">
+                        <span style="flex:none;margin-top:9px;width:6px;height:6px;border-radius:50%;background:var(--ac-hi)"></span>
+                        <span style="text-wrap:pretty">
+                          <sc-for list="{{ item }}" as="sg" hint-placeholder-count="2">
+                            <sc-if value="{{ sg.isBold }}" hint-placeholder-val="{{ false }}"><strong>{{ sg.text }}</strong></sc-if>
+                            <sc-if value="{{ sg.isItalic }}" hint-placeholder-val="{{ false }}"><em>{{ sg.text }}</em></sc-if>
+                            <sc-if value="{{ sg.isMono }}" hint-placeholder-val="{{ false }}"><code style="font-family:'JetBrains Mono';font-size:.92em;background:var(--surface-3);padding:1px 5px;border-radius:4px">{{ sg.text }}</code></sc-if>
+                            <sc-if value="{{ sg.isLink }}" hint-placeholder-val="{{ false }}"><a href="{{ sg.href }}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">{{ sg.text }}</a></sc-if>
+                            <sc-if value="{{ sg.isPlain }}" hint-placeholder-val="{{ true }}"><span>{{ sg.text }}</span></sc-if>
+                          </sc-for>
+                        </span>
+                      </li>
+                    </sc-for>
+                  </ul>
+                </sc-if>
+                <sc-if value="{{ blk.isOl }}" hint-placeholder-val="{{ false }}">
+                  <ol style="margin:0 0 18px;padding-left:22px;display:flex;flex-direction:column;gap:12px">
+                    <sc-for list="{{ blk.items }}" as="item" hint-placeholder-count="3">
+                      <li style="text-wrap:pretty">
+                        <sc-for list="{{ item }}" as="sg" hint-placeholder-count="2">
+                          <sc-if value="{{ sg.isBold }}" hint-placeholder-val="{{ false }}"><strong>{{ sg.text }}</strong></sc-if>
+                          <sc-if value="{{ sg.isItalic }}" hint-placeholder-val="{{ false }}"><em>{{ sg.text }}</em></sc-if>
+                          <sc-if value="{{ sg.isMono }}" hint-placeholder-val="{{ false }}"><code style="font-family:'JetBrains Mono';font-size:.92em;background:var(--surface-3);padding:1px 5px;border-radius:4px">{{ sg.text }}</code></sc-if>
+                          <sc-if value="{{ sg.isLink }}" hint-placeholder-val="{{ false }}"><a href="{{ sg.href }}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">{{ sg.text }}</a></sc-if>
+                          <sc-if value="{{ sg.isPlain }}" hint-placeholder-val="{{ true }}"><span>{{ sg.text }}</span></sc-if>
+                        </sc-for>
+                      </li>
+                    </sc-for>
+                  </ol>
+                </sc-if>
+                <sc-if value="{{ blk.isCode }}" hint-placeholder-val="{{ false }}">
+                  <pre style="margin:0 0 18px;padding:16px 18px;border-radius:12px;background:var(--surface-3);overflow-x:auto;font-family:'JetBrains Mono';font-size:14px;line-height:1.55;color:var(--ink-3)"><code>{{ blk.code }}</code></pre>
+                </sc-if>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin-top:24px">
+            <button onClick="{{ post.onToggle }}" style="cursor:pointer;font-family:'JetBrains Mono';font-size:12.5px;letter-spacing:.02em;padding:9px 16px;border-radius:999px;border:1px solid var(--ac-mid);background:transparent;color:var(--ac-ink);transition:all .2s" style-hover="background:var(--accent-soft)">{{ post.toggleLabel }}</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
   <!-- CONTACT -->
   <section id="contact" style="position:relative;padding:120px 32px 100px;overflow:hidden;margin-top:40px;border-top:1px solid var(--border)">
     <div data-parallax="0.12" data-base-x="-50%" style="position:absolute;top:-30%;left:50%;transform:translateX(-50%);transition:transform .5s cubic-bezier(.22,.61,.36,1);width:700px;height:500px;z-index:0"><div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,var(--blob-3),transparent 68%);filter:blur(6px);animation:floatA 18s ease-in-out infinite"></div></div>
@@ -743,6 +827,7 @@ class Component extends DCLogic {
 
   state = {
     expanded: {},
+    postsExpanded: {},
     langOpen: false,
     mobileOpen: false,
     lang: (typeof localStorage !== 'undefined' && localStorage.getItem('cv-lang')) || null,
@@ -896,6 +981,10 @@ class Component extends DCLogic {
     this.setState(s => ({ expanded: { ...s.expanded, [i]: !s.expanded[i] } }));
   }
 
+  togglePost(slug) {
+    this.setState(s => ({ postsExpanded: { ...s.postsExpanded, [slug]: !s.postsExpanded[slug] } }));
+  }
+
   // A section anchor that carries enough state to reopen a shared link the
   // same way the sender saw it: current language, plus whatever else (e.g. an
   // expanded project key) the caller passes in `extra`.
@@ -920,7 +1009,7 @@ class Component extends DCLogic {
   // not just the top of the Work section (same for `#experience?p=...`).
   scrollToTarget(id, key, behavior) {
     const section = document.getElementById(id);
-    const target = (key && section?.querySelector('[data-project-key="' + key + '"]')) || section;
+    const target = (key && section?.querySelector('[data-project-key="' + key + '"], [data-post-key="' + key + '"]')) || section;
     target?.scrollIntoView({ behavior, block: 'start' });
   }
 
@@ -936,6 +1025,7 @@ class Component extends DCLogic {
     const key = params.get('p');
     const i = key ? this.PROJECTS.findIndex(p => p.key === key) : -1;
     if (i >= 0) this.setState(s => ({ expanded: { ...s.expanded, [i]: true } }));
+    if (id === 'thoughts' && key) this.setState(s => ({ postsExpanded: { ...s.postsExpanded, [key]: true } }));
     if (id) setTimeout(() => this.scrollToTarget(id, key, undefined), 60);
   }
 
@@ -971,7 +1061,7 @@ class Component extends DCLogic {
     wire();
     this._io = io;
 
-    const secs = ['about', 'projects', 'skills', 'experience', 'contact'];
+    const secs = ['about', 'projects', 'skills', 'experience', 'thoughts', 'contact'];
     const onScroll = () => {
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight || 1;
@@ -1012,7 +1102,7 @@ class Component extends DCLogic {
       if (cur !== this._titleSec) {
         this._titleSec = cur;
         const nav = this.getStrings()[this.lang()].nav;
-        const label = { about: nav.about, projects: nav.work, skills: nav.skills, experience: nav.timeline, contact: nav.contact }[cur];
+        const label = { about: nav.about, projects: nav.work, skills: nav.skills, experience: nav.timeline, thoughts: nav.thoughts, contact: nav.contact }[cur];
         document.title = label ? 'Vincent Rizzo - ' + label.charAt(0).toUpperCase() + label.slice(1) : 'Vincent Rizzo - Portfolio';
       }
     };
@@ -2107,12 +2197,24 @@ class Component extends DCLogic {
     const hrefWork = this.sectionHref('projects');
     const hrefSkills = this.sectionHref('skills');
     const hrefExperience = this.sectionHref('experience');
+    const hrefThoughts = this.sectionHref('thoughts');
     const hrefContact = this.sectionHref('contact');
     const onNavAbout = (e) => this.goTo(e, 'about');
     const onNavWork = (e) => this.goTo(e, 'projects');
     const onNavSkills = (e) => this.goTo(e, 'skills');
     const onNavExperience = (e) => this.goTo(e, 'experience');
+    const onNavThoughts = (e) => this.goTo(e, 'thoughts');
     const onNavContact = (e) => this.goTo(e, 'contact');
+
+    const posts = t.posts.map((post) => {
+      const open = !!this.state.postsExpanded[post.slug];
+      return {
+        ...post,
+        open,
+        toggleLabel: open ? t.work.hide : t.work.show,
+        onToggle: () => this.togglePost(post.slug),
+      };
+    });
 
     return {
       profile, t, projects, tl, langs, curFlag: flagStyle(code),
@@ -2126,8 +2228,9 @@ class Component extends DCLogic {
       onLangToggle: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ langOpen: !s.langOpen })); },
       mobileOpen: !!this.state.mobileOpen,
       onMobileToggle: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ mobileOpen: !s.mobileOpen })); },
-      hrefAbout, hrefWork, hrefSkills, hrefExperience, hrefContact,
-      onNavAbout, onNavWork, onNavSkills, onNavExperience, onNavContact,
+      hrefAbout, hrefWork, hrefSkills, hrefExperience, hrefThoughts, hrefContact,
+      onNavAbout, onNavWork, onNavSkills, onNavExperience, onNavThoughts, onNavContact,
+      posts,
       onCopyEmail: () => this.copyEmail(profile.links.email),
       emailCopied: !!this.state.emailCopied,
       emailToast: t.ct.copied,
